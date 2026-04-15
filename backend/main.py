@@ -7,6 +7,8 @@ from backend.config import settings
 from backend.database import init_db
 from backend.routers.media import router as media_router
 from backend.routers.projects import router as projects_router
+from backend.routers.batch import router as batch_router
+from backend.workers.task_runner import shutdown_executor
 
 
 @asynccontextmanager
@@ -14,6 +16,7 @@ async def lifespan(app: FastAPI):
     settings.ensure_dirs()
     await init_db()
     yield
+    shutdown_executor()
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
@@ -29,6 +32,7 @@ app.add_middleware(
 
 app.include_router(media_router)
 app.include_router(projects_router)
+app.include_router(batch_router)
 
 
 @app.get("/api/health")
