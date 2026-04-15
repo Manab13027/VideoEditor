@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
 from backend.database import init_db
+from backend.routers.export import router as export_router
 from backend.routers.media import router as media_router
 from backend.routers.projects import router as projects_router
 from backend.routers.batch import router as batch_router
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(media_router)
 app.include_router(projects_router)
 app.include_router(batch_router)
+app.include_router(export_router)
 
 
 @app.get("/api/health")
