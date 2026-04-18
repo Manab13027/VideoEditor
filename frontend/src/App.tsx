@@ -3,13 +3,28 @@ import { TabBar } from "./components/layout/TabBar";
 import { PanelLayout } from "./components/layout/PanelLayout";
 import { useProjectStore } from "./stores/projectStore";
 
+// Edit mode
+import { MediaBrowser } from "./components/edit/MediaBrowser";
+import { PreviewPlayer } from "./components/edit/PreviewPlayer";
+import { PropertiesPanel } from "./components/edit/PropertiesPanel";
+import { Timeline } from "./components/edit/Timeline";
+
+// Batch mode
+import { FileQueue } from "./components/batch/FileQueue";
+import { OperationConfig } from "./components/batch/OperationConfig";
+import { ProgressPanel } from "./components/batch/ProgressPanel";
+
+// Export mode
+import { PreviewSummary } from "./components/export/PreviewSummary";
+import { ExportSettings } from "./components/export/ExportSettings";
+
 function EditMode() {
   return (
     <PanelLayout
-      left={<div className="placeholder-panel"><span className="section-label">Media Library</span></div>}
-      center={<div className="placeholder-panel"><span className="section-label">Timeline / Preview</span></div>}
-      right={<div className="placeholder-panel"><span className="section-label">Properties</span></div>}
-      bottom={<div className="placeholder-panel"><span className="section-label">Timeline Track</span></div>}
+      left={<MediaBrowser />}
+      center={<PreviewPlayer />}
+      right={<PropertiesPanel />}
+      bottom={<Timeline />}
     />
   );
 }
@@ -17,9 +32,9 @@ function EditMode() {
 function BatchMode() {
   return (
     <PanelLayout
-      left={<div className="placeholder-panel"><span className="section-label">File Queue</span></div>}
-      center={<div className="placeholder-panel"><span className="section-label">Operations</span></div>}
-      right={<div className="placeholder-panel"><span className="section-label">Job Status</span></div>}
+      left={<FileQueue />}
+      center={<OperationConfig />}
+      right={<ProgressPanel />}
     />
   );
 }
@@ -27,28 +42,29 @@ function BatchMode() {
 function ExportMode() {
   return (
     <PanelLayout
-      center={<div className="placeholder-panel"><span className="section-label">Export Settings</span></div>}
-      right={<div className="placeholder-panel"><span className="section-label">Preview</span></div>}
+      left={<PreviewSummary />}
+      center={<ExportSettings />}
     />
   );
 }
 
-function App() {
-  const activeTab = useProjectStore((s) => s.activeTab);
-  const initProject = useProjectStore((s) => s.initProject);
+export default function App() {
+  const { activeTab, project, initProject } = useProjectStore();
 
   useEffect(() => {
-    initProject("Untitled Project").catch(console.error);
-  }, [initProject]);
+    if (!project) {
+      initProject("Untitled Project");
+    }
+  }, [project, initProject]);
 
   return (
     <div className="app">
       <TabBar />
-      {activeTab === "edit" && <EditMode />}
-      {activeTab === "batch" && <BatchMode />}
-      {activeTab === "export" && <ExportMode />}
+      <div className="app-body">
+        {activeTab === "edit" && <EditMode />}
+        {activeTab === "batch" && <BatchMode />}
+        {activeTab === "export" && <ExportMode />}
+      </div>
     </div>
   );
 }
-
-export default App;
