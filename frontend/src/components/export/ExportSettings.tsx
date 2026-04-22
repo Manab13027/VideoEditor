@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useProjectStore } from "../../stores/projectStore";
+import { useTimelineStore } from "../../stores/timelineStore";
 import { startExport, getExportStatus, uploadToDrive } from "../../api/client";
 import { ProgressBar } from "../shared/ProgressBar";
 import type { ExportJob } from "../../types";
@@ -79,7 +80,7 @@ function ToggleButton({
 }
 
 export function ExportSettings() {
-  const { project } = useProjectStore();
+  const { project, saveTimeline } = useProjectStore();
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>("youtube");
   const [qualityTier, setQualityTier] = useState<string | null>(null);
@@ -119,6 +120,9 @@ export function ExportSettings() {
     setExportJob(null);
 
     try {
+      const { mode, clips, overlays } = useTimelineStore.getState();
+      await saveTimeline({ mode, clips, overlays });
+
       const res = await startExport({
         project_id: project.id,
         ...(selectedPreset ? { preset: selectedPreset } : {}),

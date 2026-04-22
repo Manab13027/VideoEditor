@@ -55,7 +55,7 @@ class ExportRequest(BaseModel):
     audio_codec: str = "aac"
     width: Optional[int] = None
     height: Optional[int] = None
-    bitrate: Optional[str] = None
+    bitrate: Optional[int] = None
     fps: int = 30
     quality_tier: Optional[str] = None
     output_dir: Optional[str] = None
