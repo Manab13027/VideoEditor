@@ -30,6 +30,13 @@ export const applyCrop = (
   crop: { x: number; y: number; w: number; h: number }
 ): Promise<{ data: MediaFile }> => api.post(`/media/${id}/crop`, crop);
 
+export const mergeClips = (
+  clips: Array<{ media_id: string; trim_start: number; trim_end: number | null }>
+): Promise<{ data: MediaFile }> =>
+  api.post("/media/merge", {
+    clips: clips.map((c) => ({ ...c, media_id: Number(c.media_id) })),
+  });
+
 export const getMediaProxyUrl = (id: string, bust?: number): string =>
   `http://localhost:8000/api/media/${id}/proxy${bust ? `?t=${bust}` : ""}`;
 
