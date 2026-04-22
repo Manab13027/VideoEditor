@@ -13,6 +13,42 @@ export interface MediaFile {
   created_at: string;
 }
 
+export interface ClipColor {
+  brightness: number; // 0–2, 1 = normal
+  contrast: number;   // 0–2, 1 = normal
+  saturation: number; // 0–2, 1 = normal
+  hue: number;        // degrees, 0–360
+}
+
+export type FilterPreset =
+  | "grayscale" | "sepia" | "vintage" | "vivid" | "cool" | "warm"
+  | "teal_orange" | "matte" | "film_noir" | "golden" | "cyberpunk" | "faded";
+
+export interface CurvePoint { x: number; y: number; }  // 0–255
+
+export interface ColorCurves {
+  rgb: CurvePoint[];
+  r:   CurvePoint[];
+  g:   CurvePoint[];
+  b:   CurvePoint[];
+}
+
+export interface ColorRange { r: number; g: number; b: number; }  // –0.5 to 0.5
+
+export interface ColorWheels {
+  shadows:    ColorRange;
+  midtones:   ColorRange;
+  highlights: ColorRange;
+}
+
+export interface ClipEffects {
+  motion_blur: number;  // 0–1
+  glow:        number;  // 0–1
+  shake:       number;  // 0–1
+}
+
+export type TransitionType = "none" | "fade" | "crossfade" | "wipe_left" | "wipe_right" | "zoom_in" | "glitch";
+
 export interface Clip {
   id: string;
   media_id: string;
@@ -23,6 +59,17 @@ export interface Clip {
   speed: number;
   duration: number | null;
   order: number;
+  color?: ClipColor | null;
+  filter?: FilterPreset | null;
+  rotate?: 0 | 90 | 180 | 270;
+  reversed?: boolean;
+  fade_in?: number;
+  fade_out?: number;
+  curves?: ColorCurves | null;
+  wheels?: ColorWheels | null;
+  effects?: Partial<ClipEffects> | null;
+  transition_in?: TransitionType;
+  transition_dur?: number;
 }
 
 export interface Overlay {
@@ -99,4 +146,40 @@ export interface ExportJob {
   created_at: string;
 }
 
-export type TabMode = "edit" | "batch" | "export";
+export type TabMode = "edit" | "batch" | "export" | "ai" | "social" | "help";
+
+export interface Caption {
+  start: number;
+  end:   number;
+  text:  string;
+}
+
+export interface AIJob {
+  type:     string;
+  mediaId:  string;
+  status:   "idle" | "running" | "done" | "error";
+  result?:  unknown;
+  error?:   string;
+}
+
+export type SocialPlatform = "tiktok" | "instagram_reel" | "instagram_post" | "youtube";
+
+export interface SocialMetadata {
+  title: string;
+  description: string;
+  platforms: SocialPlatform[];
+  thumbnailTime: number | null;
+}
+
+export interface HashtagResult {
+  platform: string;
+  tags: string[];
+}
+
+export interface MultiExportJob {
+  platform: SocialPlatform;
+  jobId: string;
+  status: "pending" | "running" | "done" | "error";
+  outputPath: string | null;
+  error: string | null;
+}
