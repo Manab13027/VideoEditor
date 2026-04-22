@@ -1,0 +1,82 @@
+{
+  "travel": {
+    "tiktok": ["fyp","travel","traveltok","wanderlust","explore","adventure","travelvibes","worldtravel","travelgram","vacation","abroad","traveling","destination","nomad","backpacker","solotravel","travellife","traveladdict","roamtheplanet","beautifuldestinations","travelphoto","travelblogger","instatravel","travelmore","welltravelled","traveldeep","travelstoke","travelinspiration","aroundtheworld","globetrotter"],
+    "instagram": ["travel","wanderlust","explore","adventure","travelgram","instatravel","vacation","travelblogger","travelphoto","traveladdict"]
+  },
+  "food": {
+    "tiktok": ["fyp","food","foodtok","foodie","recipe","cooking","homecooking","yummy","delicious","foodlover","instafood","foodies","tasty","easyrecipe","mealprep","healthyfood","snack","dinner","lunch","breakfast","baking","chef","kitchentips","viral","trending","foodvideo","foodreview","streetfood","mukbang","asmrfood"],
+    "instagram": ["food","foodie","recipe","instafood","foodlover","homecooking","yummy","delicious","foodphotography","healthyfood"]
+  },
+  "fitness": {
+    "tiktok": ["fyp","fitness","workout","gym","fit","fitnessmotivation","exercise","health","training","fittok","weightloss","bodybuilding","cardio","gains","sweat","strong","motivation","personaltrainer","healthylifestyle","gymlife","workoutvideo","abs","transformation","homeworkout","fitlife","wellness","active","sport","run","lifting"],
+    "instagram": ["fitness","workout","gym","fitnessmotivation","health","training","exercise","healthy","gains","motivation"]
+  },
+  "gaming": {
+    "tiktok": ["fyp","gaming","gamer","gameplay","gamertok","videogames","twitch","streamer","gamingtiktok","pcgaming","consolegaming","rpg","fps","moba","esports","newgame","gamingsetup","gta","minecraft","fortnite","cod","valorant","apex","lol","pubg","gamepass","xbox","playstation","nintendo","viral"],
+    "instagram": ["gaming","gamer","gameplay","videogames","esports","streamer","gamingsetup","pcgaming","twitch","gamerlife"]
+  },
+  "music": {
+    "tiktok": ["fyp","music","musician","song","singer","band","guitar","piano","drums","producer","newmusic","originalsong","cover","acoustic","viral","trending","musician","hiphop","pop","rock","rnb","indie","edm","lofi","beats","studio","recording","musicvideo","playlist","concert"],
+    "instagram": ["music","musician","song","newmusic","singer","guitar","producer","originalsong","musicvideo","livemusic"]
+  },
+  "fashion": {
+    "tiktok": ["fyp","fashion","style","ootd","outfit","fashiontok","clothes","trending","aesthetic","streetwear","vintage","thrift","luxury","fashionista","model","lookbook","haul","stylist","fashioninspo","wiwt","outfitcheck","fashionblogger","streetstyle","viral","shopping","designer","capsulewardrobe","sustainable","minimalfashion","bold"],
+    "instagram": ["fashion","style","ootd","outfit","fashionista","streetwear","vintage","lookbook","fashionblogger","sustainablefashion"]
+  },
+  "comedy": {
+    "tiktok": ["fyp","funny","comedy","funnytiktok","humor","lol","meme","laughing","jokes","comedytok","viral","trending","prank","skit","relatable","foryou","trending","hilarious","comedyvideo","comicrelief","standup","comedians","joking","funnymemes","funnymomments","satire","parody","roast","banter","funnyvideo"],
+    "instagram": ["funny","comedy","humor","meme","lol","relatable","viral","jokes","funnymemes","comedyvideos"]
+  },
+  "beauty": {
+    "tiktok": ["fyp","beauty","makeup","skincare","beautytok","glam","tutorial","makeuptutorial","skincareRoutine","grwm","motd","skincaretips","beautyproducts","makeuplover","glowup","transformation","drugstore","luxury","beautyreview","cleanbeauty","naturalmakeup","smokyeye","lipliner","foundation","contour","highlight","blush","mascara","eyeshadow","skingoals"],
+    "instagram": ["beauty","makeup","skincare","beautyblogger","makeuplover","glam","tutorial","skincareRoutine","grwm","glowup"]
+  },
+  "tech": {
+    "tiktok": ["fyp","tech","technology","techtok","gadget","review","techreview","smartphone","laptop","coding","programmer","developer","ai","software","hardware","startup","innovation","futuretech","apple","android","windows","linux","cybersecurity","datascience","machinelearning","robotics","viral","trending","techbro","unboxing","comparison"],
+    "instagram": ["tech","technology","gadget","techreview","coding","developer","innovation","startup","ai","unboxing"]
+  },
+  "education": {
+    "tiktok": ["fyp","learnontiktok","educational","didyouknow","facts","learning","knowledge","studytok","school","college","tips","lifehacks","howto","tutorial","science","history","math","english","psychology","philosophy","mindblowing","viral","trending","tipsandtricks","studentlife","studywithme","productivity","study","brain","wisdom"],
+    "instagram": ["education","learning","didyouknow","facts","knowledge","tips","tutorial","howto","studygram","learneveryday"]
+  },
+  "lifestyle": {
+    "tiktok": ["fyp","lifestyle","dailyvlog","dayinmylife","vlog","routine","morningroutine","nightroutine","productivity","selfcare","wellness","mindfulness","healthylifestyle","aesthetic","clean","organize","minimalist","homor","homedecor","apartment","adultlife","adulting","viral","trending","slowliving","intentional","grwm","selflove","positivity","motivation"],
+    "instagram": ["lifestyle","vlog","dayinmylife","selfcare","wellness","morningroutine","aesthetic","minimalist","productivity","selflove"]
+  },
+  "pets": {
+    "tiktok": ["fyp","pets","dog","cat","dogsoftiktok","catsoftiktok","puppy","kitten","petsoftiktok","cuteanimals","funnypets","animals","petlover","doglover","catlover","animallovers","rescue","adopt","petcare","dogtraining","pawsome","dogmom","catmom","goldenretriever","husky","viral","trending","petvideos","fluffyanimals","furbaby"],
+    "instagram": ["pets","dog","cat","puppy","kitten","dogsofinstagram","catsofinstagram","animals","petlover","adorable"]
+  },
+  "business": {
+    "tiktok": ["fyp","business","entrepreneur","smallbusiness","startup","money","success","motivation","hustle","grind","marketing","socialmedia","branding","sales","ecommerce","dropshipping","investing","finance","sidehustle","businesstips","entrepreneurship","ceo","boss","leadership","growth","passive","income","productivityhacks","viral","trending","mindset"],
+    "instagram": ["business","entrepreneur","smallbusiness","startup","marketing","success","motivation","hustle","branding","leadership"]
+  },
+  "sports": {
+    "tiktok": ["fyp","sports","athlete","training","highlights","goals","sportsedits","football","soccer","basketball","tennis","swimming","running","cycling","boxing","mma","nfl","nba","mlb","esports","viral","trending","sportstok","workout","gains","competition","teamwork","championship","victory","sports"],
+    "instagram": ["sports","athlete","training","fitness","goals","football","basketball","tennis","running","champion"]
+  },
+  "art": {
+    "tiktok": ["fyp","art","artist","drawing","painting","digitalart","artprocess","artwork","creative","illustration","sketch","procreate","design","graphicdesign","arttok","satisfying","timelapse","oc","originalart","fanart","animation","3dart","handmade","craft","diy","colorful","viral","trending","arttutorial","painting","creative"],
+    "instagram": ["art","artist","drawing","painting","digitalart","illustration","artwork","creative","sketch","procreate"]
+  },
+  "diy": {
+    "tiktok": ["fyp","diy","crafts","handmade","create","tutorial","howto","upcycle","repurpose","makeover","renovation","home","decor","crafting","cricut","sewing","knitting","woodworking","painting","satisfying","viral","trending","diytok","makersoftiktok","crafttok","homemade","creative","build","fix","restore"],
+    "instagram": ["diy","crafts","handmade","tutorial","upcycle","makeover","homedecor","crafting","creative","homemade"]
+  },
+  "nature": {
+    "tiktok": ["fyp","nature","outdoors","wildlife","hiking","camping","forest","mountains","ocean","sunset","sunrise","photography","naturephotography","earthday","environment","conservation","sustainable","green","animals","birds","flowers","trees","landscape","adventure","explore","viral","trending","naturelover","wilderness","serene","breathtaking"],
+    "instagram": ["nature","outdoors","wildlife","hiking","landscape","photography","naturephotography","sunset","mountains","earthday"]
+  },
+  "motivation": {
+    "tiktok": ["fyp","motivation","inspiration","mindset","success","goalsetting","selfdevelopment","personalgrowth","positivity","dailymotivation","quotes","affirmations","selfimprovement","mentalhealth","wellbeing","confidence","focus","discipline","habits","consistency","grind","hustle","believe","growth","viral","trending","motivationdaily","growthmindset","lifelessons","powerful"],
+    "instagram": ["motivation","inspiration","mindset","success","positivity","selfdevelopment","quotes","affirmations","mentalhealth","growthmindset"]
+  },
+  "vlog": {
+    "tiktok": ["fyp","vlog","dailyvlog","dayinmylife","storytime","followmearound","routine","life","reallife","lifestyle","candid","authentic","behindthescenes","viral","trending","videoblog","weekly","monthly","dayinthelife","mylife","vlogger","contentcreator","creator","documenting","moments","realness","grwm","nightout","weekend","adventure"],
+    "instagram": ["vlog","dailyvlog","dayinmylife","storytime","lifestyle","behindthescenes","contentcreator","authentic","mylife","creator"]
+  },
+  "general": {
+    "tiktok": ["fyp","foryou","foryoupage","viral","trending","tiktok","explore","blowup","content","creator","video","watch","share","like","follow","fun","cool","amazing","insane","satisfying","awesome","incredible","mindblowing","mustsee","cantmiss","trending2024","viral2024","newvideo","fresh","popular"],
+    "instagram": ["reels","explore","instareels","instagood","instagram","content","creator","viral","trending","popular"]
+  }
+}
