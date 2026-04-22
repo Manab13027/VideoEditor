@@ -10,6 +10,7 @@ class Settings(BaseModel):
     proxy_dir: Path = Path("data/proxies")
     export_dir: Path = Path("data/exports")
     thumbnail_dir: Path = Path("data/thumbnails")
+    audio_dir: Path = Path("data/audio")
     db_path: Path = Path("data/clipforge.db")
 
     max_workers: int = 3
@@ -24,6 +25,9 @@ class Settings(BaseModel):
         ".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif",
         ".gif", ".webp", ".svg", ".ico", ".tga",
     }
+    allowed_audio_extensions: set[str] = {
+        ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma", ".opus",
+    }
 
     def ensure_dirs(self) -> None:
         for d in (
@@ -32,6 +36,7 @@ class Settings(BaseModel):
             self.proxy_dir,
             self.export_dir,
             self.thumbnail_dir,
+            self.audio_dir,
         ):
             d.mkdir(parents=True, exist_ok=True)
 
