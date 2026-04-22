@@ -1,4 +1,6 @@
-data/
+/data/
+backend/data/uploads/
+backend/data/exports/
 .superpowers/
 node_modules/
 __pycache__/

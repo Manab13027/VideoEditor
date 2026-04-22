@@ -32,7 +32,7 @@
     "instagram": ["beauty","makeup","skincare","beautyblogger","makeuplover","glam","tutorial","skincareRoutine","grwm","glowup"]
   },
   "tech": {
-    "tiktok": ["fyp","tech","technology","techtok","gadget","review","techreview","smartphone","laptop","coding","programmer","developer","ai","software","hardware","startup","innovation","futuretech","apple","android","windows","linux","cybersecurity","datascience","machinelearning","robotics","viral","trending","techbro","unboxing","comparison"],
+    "tiktok": ["fyp","tech","technology","techtok","gadget","review","techreview","smartphone","laptop","coding","programmer","developer","ai","software","hardware","startup","innovation","futuretech","apple","android","windows","linux","cybersecurity","datascience","machinelearning","robotics","viral","trending","techbro","unboxing"],
     "instagram": ["tech","technology","gadget","techreview","coding","developer","innovation","startup","ai","unboxing"]
   },
   "education": {
@@ -48,7 +48,7 @@
     "instagram": ["pets","dog","cat","puppy","kitten","dogsofinstagram","catsofinstagram","animals","petlover","adorable"]
   },
   "business": {
-    "tiktok": ["fyp","business","entrepreneur","smallbusiness","startup","money","success","motivation","hustle","grind","marketing","socialmedia","branding","sales","ecommerce","dropshipping","investing","finance","sidehustle","businesstips","entrepreneurship","ceo","boss","leadership","growth","passive","income","productivityhacks","viral","trending","mindset"],
+    "tiktok": ["fyp","business","entrepreneur","smallbusiness","startup","money","success","motivation","hustle","grind","marketing","socialmedia","branding","sales","ecommerce","dropshipping","investing","finance","sidehustle","businesstips","entrepreneurship","ceo","boss","leadership","growth","passive","income","productivityhacks","viral","trending"],
     "instagram": ["business","entrepreneur","smallbusiness","startup","marketing","success","motivation","hustle","branding","leadership"]
   },
   "sports": {
@@ -56,7 +56,7 @@
     "instagram": ["sports","athlete","training","fitness","goals","football","basketball","tennis","running","champion"]
   },
   "art": {
-    "tiktok": ["fyp","art","artist","drawing","painting","digitalart","artprocess","artwork","creative","illustration","sketch","procreate","design","graphicdesign","arttok","satisfying","timelapse","oc","originalart","fanart","animation","3dart","handmade","craft","diy","colorful","viral","trending","arttutorial","painting","creative"],
+    "tiktok": ["fyp","art","artist","drawing","painting","digitalart","artprocess","artwork","creative","illustration","sketch","procreate","design","graphicdesign","arttok","satisfying","timelapse","oc","originalart","fanart","animation","3dart","handmade","craft","diy","colorful","viral","trending","arttutorial","watercolor"],
     "instagram": ["art","artist","drawing","painting","digitalart","illustration","artwork","creative","sketch","procreate"]
   },
   "diy": {
@@ -64,7 +64,7 @@
     "instagram": ["diy","crafts","handmade","tutorial","upcycle","makeover","homedecor","crafting","creative","homemade"]
   },
   "nature": {
-    "tiktok": ["fyp","nature","outdoors","wildlife","hiking","camping","forest","mountains","ocean","sunset","sunrise","photography","naturephotography","earthday","environment","conservation","sustainable","green","animals","birds","flowers","trees","landscape","adventure","explore","viral","trending","naturelover","wilderness","serene","breathtaking"],
+    "tiktok": ["fyp","nature","outdoors","wildlife","hiking","camping","forest","mountains","ocean","sunset","sunrise","photography","naturephotography","earthday","environment","conservation","sustainable","green","animals","birds","flowers","trees","landscape","adventure","explore","viral","trending","naturelover","wilderness","serene"],
     "instagram": ["nature","outdoors","wildlife","hiking","landscape","photography","naturephotography","sunset","mountains","earthday"]
   },
   "motivation": {
