@@ -147,3 +147,32 @@ export const socialMultiExport = (body: {
 }) => api.post("/social/multi-export", body);
 
 export const socialValidate = () => api.get("/social/limits");
+
+// Audio
+export const audioImport = (
+  file: File,
+  trackType: "music" | "voiceover"
+): Promise<{ data: { media_id: string; filename: string; waveform: number[]; duration: number } }> => {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("track_type", trackType);
+  return api.post("/audio/import", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const audioWaveform = (
+  mediaId: string
+): Promise<{ data: { waveform: number[] } }> =>
+  api.get(`/audio/waveform/${mediaId}`);
+
+export const audioBeats = (
+  mediaId: string
+): Promise<{ data: { beats: number[] } }> =>
+  api.post(`/audio/beats/${mediaId}`);
+
+export const audioSync = (body: {
+  media_id: string;
+  target_duration: number;
+}): Promise<{ data: { output_media_id: string } }> =>
+  api.post("/audio/sync", body);
