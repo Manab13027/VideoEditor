@@ -23,10 +23,15 @@ export const uploadMedia = (file: File): Promise<{ data: MediaFile }> => {
 };
 
 export const getMediaInfo = (id: string): Promise<{ data: MediaFile }> =>
-  api.get(`/media/${id}`);
+  api.get(`/media/${id}/info`);
 
-export const getMediaProxyUrl = (id: string): string =>
-  `http://localhost:8000/api/media/${id}/proxy`;
+export const applyCrop = (
+  id: string,
+  crop: { x: number; y: number; w: number; h: number }
+): Promise<{ data: MediaFile }> => api.post(`/media/${id}/crop`, crop);
+
+export const getMediaProxyUrl = (id: string, bust?: number): string =>
+  `http://localhost:8000/api/media/${id}/proxy${bust ? `?t=${bust}` : ""}`;
 
 export const getMediaThumbnailUrl = (id: string): string =>
   `http://localhost:8000/api/media/${id}/thumbnail`;
@@ -52,17 +57,17 @@ export const startBatchJob = (
   operations: BatchOperation[],
   outputDir?: string
 ): Promise<{ data: BatchJob }> =>
-  api.post("/batch/start", { file_ids: fileIds, operations, output_dir: outputDir });
+  api.post("/batch", { file_ids: fileIds, operations, output_dir: outputDir });
 
 export const getBatchStatus = (jobId: string): Promise<{ data: BatchJob }> =>
-  api.get(`/batch/${jobId}`);
+  api.get(`/batch/${jobId}/status`);
 
 // Export
 export const startExport = (settings: ExportSettings): Promise<{ data: ExportJob }> =>
-  api.post("/export/start", settings);
+  api.post("/export", settings);
 
 export const getExportStatus = (jobId: string): Promise<{ data: ExportJob }> =>
-  api.get(`/export/${jobId}`);
+  api.get(`/export/${jobId}/status`);
 
 // Drive
 export const getDriveStatus = (): Promise<{ data: { authenticated: boolean; email?: string } }> =>
@@ -76,6 +81,31 @@ export const uploadToDrive = (
   folderId?: string
 ): Promise<{ data: { file_id: string; web_view_link: string } }> =>
   api.post("/drive/upload", { file_path: filePath, folder_id: folderId });
+
+// AI
+export const aiTranscribe = (mediaId: string, language?: string) =>
+  api.post(`/ai/captions/${mediaId}`, { language });
+
+export const aiBurnSubtitles = (mediaId: string, style?: string) =>
+  api.post(`/ai/captions/${mediaId}/burn`, { style });
+
+export const aiRemoveBg = (mediaId: string) =>
+  api.post(`/ai/remove-bg/${mediaId}`);
+
+export const aiAutoCut = (mediaId: string, thresholdDb?: number, minDuration?: number) =>
+  api.post(`/ai/auto-cut/${mediaId}`, { threshold_db: thresholdDb, min_duration: minDuration });
+
+export const aiReframe = (mediaId: string, targetWidth?: number, targetHeight?: number) =>
+  api.post(`/ai/reframe/${mediaId}`, { target_width: targetWidth, target_height: targetHeight });
+
+export const aiEnhanceFace = (mediaId: string) =>
+  api.post(`/ai/enhance/${mediaId}`);
+
+export const aiTrackObject = (mediaId: string, bbox: [number, number, number, number]) =>
+  api.post(`/ai/track/${mediaId}`, { bbox });
+
+export const aiGenerateVideo = (prompt: string, duration?: number, apiToken?: string) =>
+  api.post(`/ai/generate`, { prompt, duration, api_token: apiToken });
 
 // WebSocket
 export const connectProgressWS = (
@@ -92,3 +122,28 @@ export const connectProgressWS = (
   };
   return ws;
 };
+
+// Social
+export const socialHashtags = (body: {
+  title: string;
+  description?: string;
+  platforms: string[];
+  api_key?: string;
+}) => api.post("/social/hashtags", body);
+
+export const socialThumbnail = (
+  mediaId: string,
+  timestamp: number,
+  overlayText?: string
+): string =>
+  `http://localhost:8000/api/social/thumbnail/${mediaId}?timestamp=${timestamp}${overlayText ? `&overlay_text=${encodeURIComponent(overlayText)}` : ""}`;
+
+export const socialThumbnailSuggest = (mediaId: string) =>
+  api.get(`/social/thumbnail/${mediaId}/suggestions`);
+
+export const socialMultiExport = (body: {
+  project_id: string;
+  platforms: string[];
+}) => api.post("/social/multi-export", body);
+
+export const socialValidate = () => api.get("/social/limits");
