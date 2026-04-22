@@ -2,9 +2,12 @@ import { useProjectStore } from "../../stores/projectStore";
 import type { TabMode } from "../../types";
 
 const TABS: { id: TabMode; label: string }[] = [
-  { id: "edit", label: "Edit" },
-  { id: "batch", label: "Batch" },
+  { id: "edit",   label: "Edit" },
+  { id: "batch",  label: "Batch" },
   { id: "export", label: "Export" },
+  { id: "ai",     label: "AI Tools" },
+  { id: "social", label: "Social" },
+  { id: "help",   label: "Help" },
 ];
 
 export function TabBar() {

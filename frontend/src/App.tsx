@@ -18,6 +18,15 @@ import { ProgressPanel } from "./components/batch/ProgressPanel";
 import { PreviewSummary } from "./components/export/PreviewSummary";
 import { ExportSettings } from "./components/export/ExportSettings";
 
+// AI Tools
+import { AITools } from "./components/ai/AITools";
+
+// Social
+import { SocialPanel } from "./components/social/SocialPanel";
+
+// Help
+import { HelpPanel } from "./components/help/HelpPanel";
+
 function EditMode() {
   return (
     <PanelLayout
@@ -61,9 +70,12 @@ export default function App() {
     <div className="app">
       <TabBar />
       <div className="app-body">
-        {activeTab === "edit" && <EditMode />}
-        {activeTab === "batch" && <BatchMode />}
+        {activeTab === "edit"   && <EditMode />}
+        {activeTab === "batch"  && <BatchMode />}
         {activeTab === "export" && <ExportMode />}
+        {activeTab === "ai"     && <AITools />}
+        {activeTab === "social" && <SocialPanel />}
+        {activeTab === "help"   && <HelpPanel />}
       </div>
     </div>
   );
