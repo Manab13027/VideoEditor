@@ -11,6 +11,8 @@ from backend.routers.projects import router as projects_router
 from backend.routers.batch import router as batch_router
 from backend.routers.websocket import router as websocket_router
 from backend.routers.drive import router as drive_router
+from backend.routers.ai import router as ai_router
+from backend.routers.social import router as social_router
 from backend.workers.task_runner import shutdown_executor
 
 
@@ -39,6 +41,8 @@ app.include_router(batch_router)
 app.include_router(export_router)
 app.include_router(websocket_router)
 app.include_router(drive_router)
+app.include_router(ai_router)
+app.include_router(social_router)
 
 
 @app.get("/api/health")
