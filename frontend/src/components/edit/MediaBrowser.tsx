@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useProjectStore } from "../../stores/projectStore";
 import { useTimelineStore } from "../../stores/timelineStore";
+import { useAudioStore } from "../../stores/audioStore";
 import { FileDropZone } from "../shared/FileDropZone";
 import { uploadMedia } from "../../api/client";
 import type { MediaFile } from "../../types";
 
-type FilterTab = "all" | "video" | "image";
+type FilterTab = "all" | "video" | "image" | "audio";
 
 function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -22,6 +23,7 @@ function formatDuration(seconds: number | null): string {
 export function MediaBrowser() {
   const { mediaFiles, addMediaFile } = useProjectStore();
   const { addClip } = useTimelineStore();
+  const { addTrack } = useAudioStore();
   const [filter, setFilter] = useState<FilterTab>("all");
   const [uploading, setUploading] = useState(false);
 
@@ -42,6 +44,17 @@ export function MediaBrowser() {
   };
 
   const handleAddClip = (file: MediaFile) => {
+    if (file.media_type === "audio") {
+      addTrack({
+        id: String(file.id),
+        name: file.filename,
+        volume: 1,
+        muted: false,
+        duration: file.duration_seconds ?? 0,
+        waveform: [],
+      });
+      return;
+    }
     addClip({
       id: `clip-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       media_id: file.id,
@@ -58,6 +71,7 @@ export function MediaBrowser() {
     { key: "all", label: "All" },
     { key: "video", label: "Video" },
     { key: "image", label: "Image" },
+    { key: "audio", label: "Audio" },
   ];
 
   return (
@@ -105,7 +119,7 @@ export function MediaBrowser() {
           <div
             key={file.id}
             onClick={() => handleAddClip(file)}
-            title="Click to add to timeline"
+            title={file.media_type === "audio" ? "Click to add to audio track" : "Click to add to timeline"}
             style={{
               display: "flex",
               alignItems: "center",
@@ -134,7 +148,7 @@ export function MediaBrowser() {
                 flexShrink: 0,
               }}
             >
-              {file.media_type === "video" ? "🎥" : "🖼"}
+              {file.media_type === "video" ? "🎥" : file.media_type === "audio" ? "🎵" : "🖼"}
             </div>
 
             {/* Info */}

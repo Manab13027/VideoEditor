@@ -11,6 +11,7 @@ import ffmpeg
 from backend.database import get_db
 from backend.services.ffmpeg_service import (
     add_fade,
+    add_silent_audio,
     apply_color_grade,
     apply_color_wheels,
     apply_curves,
@@ -22,6 +23,7 @@ from backend.services.ffmpeg_service import (
     change_speed,
     concat_media,
     crop_video,
+    has_audio_stream,
     image_to_video,
     resize_video,
     reverse_video,
@@ -306,14 +308,24 @@ async def build_export(project_id: str, output_path: str, export_settings: dict)
             except Exception:
                 return 0.0
 
-        # Normalize every clip to target resolution so concat dimensions match
+        # Normalize every clip to target resolution so concat dimensions match,
+        # then ensure every clip has an audio stream (required by concat a=1).
         normalized_clips: list[str] = []
         for clip_path in processed_clips:
             norm_tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
             norm_tmp.close()
             tmp_files.append(norm_tmp.name)
             resize_video(clip_path, norm_tmp.name, target_w, target_h)
-            normalized_clips.append(norm_tmp.name)
+            norm_path = norm_tmp.name
+
+            if not has_audio_stream(norm_path):
+                audio_tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+                audio_tmp.close()
+                tmp_files.append(audio_tmp.name)
+                add_silent_audio(norm_path, audio_tmp.name)
+                norm_path = audio_tmp.name
+
+            normalized_clips.append(norm_path)
 
         # Merge clips with xfade transitions where defined
         merged_clips = [normalized_clips[0]]

@@ -75,13 +75,34 @@ def generate_thumbnail(input_path: str, output_path: str, timestamp: float = 1.0
     return output_path
 
 
-def _has_audio(path: str) -> bool:
+def has_audio_stream(path: str) -> bool:
     """Return True if the media file has at least one audio stream."""
     try:
         probe = ffmpeg.probe(path)
         return any(s.get("codec_type") == "audio" for s in probe.get("streams", []))
     except Exception:
         return False
+
+# Keep private alias for internal use
+_has_audio = has_audio_stream
+
+
+def add_silent_audio(input_path: str, output_path: str) -> str:
+    """Add a silent stereo AAC audio track to a video-only file."""
+    try:
+        video = ffmpeg.input(input_path).video
+        silence = ffmpeg.input("anullsrc=channel_layout=stereo:sample_rate=44100", f="lavfi")
+        (
+            ffmpeg
+            .output(video, silence, output_path, vcodec="copy", acodec="aac", shortest=None)
+            .overwrite_output()
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+    except ffmpeg.Error as exc:
+        raise ValueError(
+            f"Failed to add silent audio to '{input_path}': {exc.stderr.decode(errors='replace')}"
+        ) from exc
+    return output_path
 
 
 def generate_proxy(

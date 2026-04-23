@@ -17,7 +17,7 @@ from backend.config import settings
 from backend.database import get_db
 from backend.models.media import CropRequest, MediaFileInfo
 from backend.services.ffmpeg_service import (
-    concat_media, crop_video, probe_file, generate_proxy, generate_thumbnail, trim_video,
+    concat_media, crop_video, has_audio_stream, probe_file, generate_proxy, generate_thumbnail, trim_video,
 )
 from backend.workers.task_runner import run_in_executor
 
@@ -253,10 +253,17 @@ async def get_media_proxy(media_id: int) -> FileResponse:
     if media_type == "image":
         return FileResponse(stored_path)
 
-    # Return existing proxy if available
+    # Return existing proxy if available — but auto-heal if it lacks audio
     existing_proxy = row["proxy_path"]
     if existing_proxy and Path(existing_proxy).exists():
-        return FileResponse(existing_proxy)
+        if not has_audio_stream(existing_proxy) and has_audio_stream(stored_path):
+            # Stale proxy generated before audio-preservation fix — delete and regenerate
+            try:
+                Path(existing_proxy).unlink()
+            except OSError:
+                pass
+        else:
+            return FileResponse(existing_proxy)
 
     # Generate proxy
     settings.proxy_dir.mkdir(parents=True, exist_ok=True)
