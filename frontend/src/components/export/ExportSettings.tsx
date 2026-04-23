@@ -124,7 +124,7 @@ export function ExportSettings() {
       await saveTimeline({ mode, clips, overlays });
 
       const res = await startExport({
-        project_id: project.id,
+        project_id: String(project.id),
         ...(selectedPreset ? { preset: selectedPreset } : {}),
         ...(qualityTier ? { quality_tier: qualityTier } : {}),
         container,

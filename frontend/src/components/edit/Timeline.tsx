@@ -143,7 +143,18 @@ function MultiTrack({
       const { mode: tMode, clips: tClips, overlays: tOverlays } = useTimelineStore.getState();
       await saveTimeline({ mode: tMode, clips: tClips, overlays: tOverlays });
       if (!project) return;
-      await startExport({ project_id: project.id, preset: "web_720p" });
+      await startExport({
+        project_id: String(project.id),
+        preset: "youtube",
+        container: "mp4",
+        video_codec: "libx264",
+        audio_codec: "aac",
+        width: 1920,
+        height: 1080,
+        bitrate: 8,
+        fps: 30,
+        upload_to_drive: false,
+      });
       alert("Export started! Check the Export tab for progress.");
     } catch (err) {
       console.error("Export failed:", err);
