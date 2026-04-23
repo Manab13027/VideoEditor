@@ -1,7 +1,8 @@
 import { useTimelineStore } from "../../stores/timelineStore";
 import { useProjectStore } from "../../stores/projectStore";
 import { Storyboard } from "./Storyboard";
-import { getMediaThumbnailUrl, mergeClips } from "../../api/client";
+import { AudioTrack } from "./AudioTrack";
+import { getMediaThumbnailUrl, mergeClips, uploadMedia, startExport } from "../../api/client";
 import { useState, useRef, useEffect } from "react";
 
 const TRACK_HEIGHT = 56;
@@ -13,7 +14,7 @@ function clipDuration(clip: { type: string; trim_start: number; trim_end: number
 }
 
 export function Timeline() {
-  const { mode, setMode, clips, selectedClipId, selectClip, removeClip, selectedClipIds, toggleClipSelection, clearClipSelection } = useTimelineStore();
+  const { mode, setMode, clips, selectedClipId, selectClip, removeClip, selectedClipIds, toggleClipSelection, clearClipSelection, insertClipAt } = useTimelineStore();
   const { mediaFiles, addMediaFile } = useProjectStore();
 
   const sorted = [...clips].sort((a, b) => a.order - b.order);
@@ -48,6 +49,7 @@ export function Timeline() {
             toggleClipSelection={toggleClipSelection}
             clearClipSelection={clearClipSelection}
             removeClip={removeClip}
+            insertClipAt={insertClipAt}
             addMediaFile={addMediaFile}
             totalDuration={totalDuration}
           />
@@ -61,7 +63,7 @@ const ZOOM_LEVELS = [0.5, 1, 2, 4] as const;
 
 function MultiTrack({
   sorted, mediaFiles, selectedClipId, selectedClipIds, selectClip, toggleClipSelection,
-  clearClipSelection, removeClip, addMediaFile, totalDuration,
+  clearClipSelection, removeClip, insertClipAt, addMediaFile, totalDuration,
 }: {
   sorted: ReturnType<typeof useTimelineStore.getState>["clips"];
   mediaFiles: ReturnType<typeof useProjectStore.getState>["mediaFiles"];
@@ -71,6 +73,7 @@ function MultiTrack({
   toggleClipSelection: (id: string, add: boolean) => void;
   clearClipSelection: () => void;
   removeClip: (id: string) => void;
+  insertClipAt: (clip: Omit<ReturnType<typeof useTimelineStore.getState>["clips"][number], "order">, atOrder: number) => void;
   addMediaFile: (file: ReturnType<typeof useProjectStore.getState>["mediaFiles"][number]) => void;
   totalDuration: number;
 }) {
@@ -78,6 +81,8 @@ function MultiTrack({
   const [containerW, setContainerW] = useState(800);
   const [zoom, setZoom] = useState(1);
   const [merging, setMerging] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [dropHint, setDropHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -94,6 +99,59 @@ function MultiTrack({
 
   const videoClips = sorted.filter((c) => c.type === "video");
   const imageClips = sorted.filter((c) => c.type === "image");
+
+  const handleDropFiles = async (files: FileList | null, atOrder: number) => {
+    if (!files || files.length === 0) return;
+    const allowed = Array.from(files).filter((f) =>
+      f.type.startsWith("video/") || f.type.startsWith("image/") ||
+      /\.(mp4|mov|avi|mkv|webm|jpg|jpeg|png|gif|webp)$/i.test(f.name)
+    );
+    if (allowed.length === 0) return;
+    setDropHint(`Uploading ${allowed.length} file(s)…`);
+    try {
+      for (const file of allowed) {
+        const res = await uploadMedia(file);
+        const media = res.data;
+        addMediaFile(media);
+        const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+        insertClipAt(
+          {
+            id: `clip_${media.id}_${Date.now()}`,
+            media_id: media.id,
+            type: isImage ? "image" : "video",
+            trim_start: 0,
+            trim_end: null,
+            crop: null,
+            speed: 1,
+            duration: media.duration_seconds,
+          },
+          atOrder
+        );
+      }
+    } catch (err) {
+      console.error("Drop upload failed:", err);
+    } finally {
+      setDropHint(null);
+    }
+  };
+
+  const handleExportTimeline = async () => {
+    if (sorted.length === 0 || exporting) return;
+    setExporting(true);
+    try {
+      const { saveTimeline, project } = useProjectStore.getState();
+      const { mode: tMode, clips: tClips, overlays: tOverlays } = useTimelineStore.getState();
+      await saveTimeline({ mode: tMode, clips: tClips, overlays: tOverlays });
+      if (!project) return;
+      await startExport({ project_id: project.id, preset: "web_720p" });
+      alert("Export started! Check the Export tab for progress.");
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Export failed. Check console for details.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleMerge = async () => {
     if (selectedClipIds.length < 2 || merging) return;
@@ -155,19 +213,35 @@ function MultiTrack({
             {z === 1 ? "Fit" : `${z}×`}
           </button>
         ))}
-        {selectedClipIds.length >= 2 && (
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
+          {dropHint && (
+            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{dropHint}</span>
+          )}
+          {selectedClipIds.length >= 2 && (
+            <button
+              onClick={handleMerge}
+              disabled={merging}
+              style={{
+                padding: "2px 12px", fontSize: 11, borderRadius: 3,
+                border: "1px solid var(--accent)", background: "rgba(233,69,96,0.15)",
+                color: "var(--accent)", cursor: merging ? "not-allowed" : "pointer", fontWeight: 600,
+              }}
+            >
+              {merging ? "Merging…" : `Merge ${selectedClipIds.length} Clips`}
+            </button>
+          )}
           <button
-            onClick={handleMerge}
-            disabled={merging}
+            onClick={handleExportTimeline}
+            disabled={exporting || sorted.length === 0}
             style={{
-              marginLeft: "auto", padding: "2px 12px", fontSize: 11, borderRadius: 3,
-              border: "1px solid var(--accent)", background: "rgba(233,69,96,0.15)",
-              color: "var(--accent)", cursor: merging ? "not-allowed" : "pointer", fontWeight: 600,
+              padding: "2px 12px", fontSize: 11, borderRadius: 3,
+              border: "1px solid #22c55e", background: "rgba(34,197,94,0.12)",
+              color: "#22c55e", cursor: (exporting || sorted.length === 0) ? "not-allowed" : "pointer", fontWeight: 600,
             }}
           >
-            {merging ? "Merging…" : `Merge ${selectedClipIds.length} Clips`}
+            {exporting ? "Exporting…" : "Export Video"}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Scrollable track area */}
@@ -183,21 +257,13 @@ function MultiTrack({
         </div>
 
         {/* Video track */}
-        <TrackRow label="Video" icon="🎥" totalW={totalW} clips={videoClips} mediaFiles={mediaFiles} selectedClipId={selectedClipId} selectedClipIds={selectedClipIds} selectClip={selectClip} toggleClipSelection={toggleClipSelection} removeClip={removeClip} PX_PER_SEC={PX_PER_SEC} />
+        <TrackRow label="Video" icon="🎥" totalW={totalW} clips={videoClips} mediaFiles={mediaFiles} selectedClipId={selectedClipId} selectedClipIds={selectedClipIds} selectClip={selectClip} toggleClipSelection={toggleClipSelection} removeClip={removeClip} PX_PER_SEC={PX_PER_SEC} onDropFiles={handleDropFiles} />
 
         {/* Image overlay track */}
-        <TrackRow label="Overlay" icon="🖼" totalW={totalW} clips={imageClips} mediaFiles={mediaFiles} selectedClipId={selectedClipId} selectedClipIds={selectedClipIds} selectClip={selectClip} toggleClipSelection={toggleClipSelection} removeClip={removeClip} PX_PER_SEC={PX_PER_SEC} />
+        <TrackRow label="Overlay" icon="🖼" totalW={totalW} clips={imageClips} mediaFiles={mediaFiles} selectedClipId={selectedClipId} selectedClipIds={selectedClipIds} selectClip={selectClip} toggleClipSelection={toggleClipSelection} removeClip={removeClip} PX_PER_SEC={PX_PER_SEC} onDropFiles={handleDropFiles} />
 
-        {/* Audio track placeholder */}
-        <div style={{ display: "flex", height: TRACK_HEIGHT, borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-          <div style={{ width: 100, flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "0 10px", borderRight: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
-            <span style={{ fontSize: 13 }}>🔊</span>
-            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Audio</span>
-          </div>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 12px" }}>
-            <span style={{ fontSize: 11, color: "var(--text-secondary)", opacity: 0.5 }}>Drag audio files here</span>
-          </div>
-        </div>
+        {/* Audio track */}
+        <AudioTrack totalW={totalW} />
       </div>
     </div>
   );
@@ -205,7 +271,7 @@ function MultiTrack({
 
 function TrackRow({
   label, icon, totalW, clips, mediaFiles, selectedClipId, selectedClipIds,
-  selectClip, toggleClipSelection, removeClip, PX_PER_SEC,
+  selectClip, toggleClipSelection, removeClip, PX_PER_SEC, onDropFiles,
 }: {
   label: string; icon: string; totalW: number; PX_PER_SEC: number;
   clips: ReturnType<typeof useTimelineStore.getState>["clips"];
@@ -215,7 +281,25 @@ function TrackRow({
   selectClip: (id: string | null) => void;
   toggleClipSelection: (id: string, add: boolean) => void;
   removeClip: (id: string) => void;
+  onDropFiles: (files: FileList | null, atOrder: number) => void;
 }) {
+  const [dragOver, setDragOver] = useState(false);
+
+  const getInsertOrder = (e: React.DragEvent<HTMLDivElement>): number => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xInRegion = e.clientX - rect.left;
+    const sorted = [...clips].sort((a, b) => a.order - b.order);
+    let accumulated = 0;
+    for (const clip of sorted) {
+      const media = mediaFiles.find((f) => f.id === clip.media_id);
+      const dur = clipDuration(clip, media?.duration_seconds ?? null);
+      const midX = (accumulated + dur / 2) * PX_PER_SEC;
+      if (xInRegion < midX) return clip.order;
+      accumulated += dur;
+    }
+    return clips.length;
+  };
+
   return (
     <div style={{ display: "flex", height: TRACK_HEIGHT, borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
       {/* Track label */}
@@ -225,7 +309,12 @@ function TrackRow({
       </div>
 
       {/* Clip region */}
-      <div style={{ position: "relative", flex: 1, minWidth: totalW, overflowX: "visible" }}>
+      <div
+        style={{ position: "relative", flex: 1, minWidth: totalW, overflowX: "visible", outline: dragOver ? "2px dashed var(--accent)" : undefined }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); onDropFiles(e.dataTransfer.files, getInsertOrder(e)); }}
+      >
         {clips.map((clip) => {
           const media = mediaFiles.find((f) => f.id === clip.media_id);
           const dur   = clipDuration(clip, media?.duration_seconds ?? null);

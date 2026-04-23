@@ -13,6 +13,7 @@ interface TimelineState {
   setCropMode: (on: boolean) => void;
   setCurrentPreviewTime: (t: number) => void;
   addClip: (clip: Omit<Clip, "order">) => void;
+  insertClipAt: (clip: Omit<Clip, "order">, atOrder: number) => void;
   removeClip: (id: string) => void;
   updateClip: (id: string, patch: Partial<Clip>) => void;
   reorderClips: (clips: Clip[]) => void;
@@ -42,6 +43,14 @@ export const useTimelineStore = create<TimelineState>((set, get) => ({
     set((state) => ({
       clips: [...state.clips, { ...clip, order: state.clips.length }],
     })),
+
+  insertClipAt: (clip, atOrder) =>
+    set((state) => {
+      const shifted = state.clips.map((c) =>
+        c.order >= atOrder ? { ...c, order: c.order + 1 } : c
+      );
+      return { clips: [...shifted, { ...clip, order: atOrder }] };
+    }),
 
   removeClip: (id) =>
     set((state) => ({
