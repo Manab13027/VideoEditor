@@ -191,6 +191,28 @@ async def apply_crop(media_id: int, body: CropRequest) -> MediaFileInfo:
     return _row_to_media_info(updated)
 
 
+@router.get("/{media_id}/download")
+async def download_media(media_id: int) -> FileResponse:
+    """Download the stored file for a media entry."""
+    db: aiosqlite.Connection = await get_db()
+    try:
+        async with db.execute(
+            "SELECT stored_path, filename FROM media_files WHERE id = ?", (media_id,)
+        ) as cur:
+            row = await cur.fetchone()
+    finally:
+        await db.close()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"Media file {media_id} not found")
+
+    return FileResponse(
+        row["stored_path"],
+        filename=row["filename"],
+        headers={"Content-Disposition": f'attachment; filename="{row["filename"]}"'},
+    )
+
+
 @router.get("/{media_id}/info", response_model=MediaFileInfo)
 async def get_media_info(media_id: int) -> MediaFileInfo:
     """Fetch metadata for a media file by ID."""

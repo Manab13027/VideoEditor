@@ -43,6 +43,9 @@ export const getMediaProxyUrl = (id: string, bust?: number): string =>
 export const getMediaThumbnailUrl = (id: string): string =>
   `http://localhost:8000/api/media/${id}/thumbnail`;
 
+export const getMediaDownloadUrl = (id: string): string =>
+  `http://localhost:8000/api/media/${id}/download`;
+
 // Projects
 export const createProject = (name: string): Promise<{ data: Project }> =>
   api.post("/projects", { name });

@@ -8,9 +8,11 @@ interface TimelineState {
   selectedClipId: string | null;
   selectedClipIds: string[];
   cropMode: boolean;
+  cropAspectRatio: number | null;
   currentPreviewTime: number;
   setMode: (mode: "storyboard" | "multitrack") => void;
   setCropMode: (on: boolean) => void;
+  setCropAspectRatio: (ratio: number | null) => void;
   setCurrentPreviewTime: (t: number) => void;
   addClip: (clip: Omit<Clip, "order">) => void;
   insertClipAt: (clip: Omit<Clip, "order">, atOrder: number) => void;
@@ -33,10 +35,12 @@ export const useTimelineStore = create<TimelineState>((set, get) => ({
   selectedClipId: null,
   selectedClipIds: [],
   cropMode: false,
+  cropAspectRatio: null,
   currentPreviewTime: 0,
 
   setMode: (mode) => set({ mode }),
   setCropMode: (on) => set({ cropMode: on }),
+  setCropAspectRatio: (ratio) => set({ cropAspectRatio: ratio }),
   setCurrentPreviewTime: (t) => set({ currentPreviewTime: t }),
 
   addClip: (clip) =>
