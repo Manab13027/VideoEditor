@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import tempfile
 from typing import Optional
 
@@ -153,7 +154,6 @@ async def build_export(project_id: str, output_path: str, export_settings: dict)
                 if trim_end is not None and trim_end > trim_start:
                     trim_video(stored_path, tmp_path, trim_start, trim_end)
                 else:
-                    import shutil
                     shutil.copy2(stored_path, tmp_path)
 
             # Apply speed change if not 1x
@@ -295,9 +295,10 @@ async def build_export(project_id: str, output_path: str, export_settings: dict)
     finally:
         await db.close()
 
+    target_w = export_settings.get("width", 1280)
+    target_h = export_settings.get("height", 720)
+
     try:
-        # Apply transitions between clips, then concatenate
-        # processed_clips[i] corresponds to clips[i] (transition_in is applied at the seam)
         def _probe_duration(path: str) -> float:
             try:
                 info = ffmpeg.probe(path)
@@ -305,9 +306,18 @@ async def build_export(project_id: str, output_path: str, export_settings: dict)
             except Exception:
                 return 0.0
 
+        # Normalize every clip to target resolution so concat dimensions match
+        normalized_clips: list[str] = []
+        for clip_path in processed_clips:
+            norm_tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+            norm_tmp.close()
+            tmp_files.append(norm_tmp.name)
+            resize_video(clip_path, norm_tmp.name, target_w, target_h)
+            normalized_clips.append(norm_tmp.name)
+
         # Merge clips with xfade transitions where defined
-        merged_clips = [processed_clips[0]]
-        for i in range(1, len(processed_clips)):
+        merged_clips = [normalized_clips[0]]
+        for i in range(1, len(normalized_clips)):
             clip_meta = clips[i]
             trans_type = clip_meta.get("transition_in", "none")
             trans_dur  = float(clip_meta.get("transition_dur") or 0.5)
@@ -319,42 +329,25 @@ async def build_export(project_id: str, output_path: str, export_settings: dict)
                 xf_tmp.close()
                 tmp_files.append(xf_tmp.name)
                 try:
-                    apply_transition(prev_path, processed_clips[i], xf_tmp.name, trans_type, trans_dur, offset)
+                    apply_transition(prev_path, normalized_clips[i], xf_tmp.name, trans_type, trans_dur, offset)
                     merged_clips[-1] = xf_tmp.name
                 except Exception:
-                    # Fall back to plain concat on xfade failure
-                    merged_clips.append(processed_clips[i])
+                    merged_clips.append(normalized_clips[i])
             else:
-                merged_clips.append(processed_clips[i])
-
-        if len(merged_clips) == 1:
-            concat_path = merged_clips[0]
-            tmp_files = [f for f in tmp_files if f != concat_path]
-            owns_concat = False
-        else:
-            concat_tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
-            concat_tmp.close()
-            concat_path = concat_tmp.name
-            owns_concat = True
-            concat_media(merged_clips, concat_path)
-
-        # Resize to target resolution
-        target_w = export_settings.get("width", 1280)
-        target_h = export_settings.get("height", 720)
+                merged_clips.append(normalized_clips[i])
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-        resize_video(concat_path, output_path, target_w, target_h)
+
+        if len(merged_clips) == 1:
+            # Single clip already at target resolution — copy directly to output
+            shutil.copy2(merged_clips[0], output_path)
+        else:
+            concat_media(merged_clips, output_path)
 
     finally:
-        # Clean up temp files
         for f in tmp_files:
             try:
                 os.unlink(f)
-            except OSError:
-                pass
-        if owns_concat:
-            try:
-                os.unlink(concat_path)
             except OSError:
                 pass
 
