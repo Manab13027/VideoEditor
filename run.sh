@@ -12,18 +12,18 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Start backend
+# Start backend (must run from project root so 'backend' is a package)
 echo "🐍 Starting backend..."
-cd "$SCRIPT_DIR/backend"
+cd "$SCRIPT_DIR"
 if [ ! -d "$SCRIPT_DIR/.venv" ]; then
     python3 -m venv "$SCRIPT_DIR/.venv"
     source "$SCRIPT_DIR/.venv/bin/activate"
-    pip install -r requirements.txt
+    pip install -r backend/requirements.txt
 else
     source "$SCRIPT_DIR/.venv/bin/activate"
 fi
 
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload &
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload &
 BACKEND_PID=$!
 
 # Start frontend
