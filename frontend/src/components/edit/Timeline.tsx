@@ -4,6 +4,12 @@ import { useProjectStore } from "../../stores/projectStore";
 import { useAudioStore } from "../../stores/audioStore";
 import { Storyboard } from "./Storyboard";
 
+// navigate to export tab
+function useGoToExport() {
+  const { setActiveTab } = useProjectStore();
+  return () => setActiveTab("export");
+}
+
 const ZOOM_LEVELS = [0.1, 0.25, 0.5, 1, 2] as const;
 type ZoomLevel = typeof ZOOM_LEVELS[number];
 
@@ -270,6 +276,7 @@ function MultiTrack({ zoom }: { zoom: number }) {
 export function Timeline() {
   const { mode, setMode } = useTimelineStore();
   const [zoom, setZoom] = useState<ZoomLevel>(0.5);
+  const goToExport = useGoToExport();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -299,7 +306,16 @@ export function Timeline() {
           Multi-track
         </button>
 
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Export shortcut */}
+          <button
+            className="btn btn-primary"
+            style={{ padding: "3px 14px", fontSize: 12 }}
+            onClick={goToExport}
+          >
+            🚀 Export
+          </button>
+          <div style={{ width: 1, height: 16, background: "var(--border)" }} />
           <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Zoom</span>
           {ZOOM_LEVELS.map((z) => (
             <button
