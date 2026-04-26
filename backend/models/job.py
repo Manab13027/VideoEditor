@@ -49,7 +49,7 @@ class BatchJobResponse(BaseModel):
 
 class ExportRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")  # tolerate unknown fields from frontend
-    project_id: str
+    project_id: int
     preset: Optional[str] = None
     container: str = "mp4"
     video_codec: str = "libx264"

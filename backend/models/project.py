@@ -1,7 +1,7 @@
 """Pydantic models for project and timeline data."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -26,10 +26,25 @@ class OverlayData(BaseModel):
     time_end: float = 5.0
 
 
+class AudioTrackData(BaseModel):
+    """Represents one audio track in the timeline (music, voiceover, etc.)."""
+    id: str
+    type: str = "music"          # "music" | "voiceover" | "original"
+    mediaId: str                  # frontend uses camelCase
+    name: str = ""
+    volume: float = 1.0
+    offset: float = 0.0          # seconds from composition start
+    muted: bool = False
+    duration: Optional[float] = None  # seconds to play; None = full file
+    waveform: List[float] = Field(default_factory=list)
+
+
 class TimelineData(BaseModel):
     mode: str = "storyboard"  # "storyboard" | "multitrack"
     clips: list[ClipData] = Field(default_factory=list)
     overlays: list[OverlayData] = Field(default_factory=list)
+    audioTracks: List[AudioTrackData] = Field(default_factory=list)
+    muteOriginal: bool = False
 
 
 class ProjectCreate(BaseModel):

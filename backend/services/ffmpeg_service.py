@@ -369,6 +369,94 @@ def compress_video(
     return output_path
 
 
+def mix_audio_tracks(
+    video_path: str,
+    output_path: str,
+    audio_tracks: list,  # list of dicts: {stored_path, volume, offset, muted, duration}
+    mute_original: bool = False,
+) -> str:
+    """Mix audio tracks over a video. Each track has offset (seconds) and optional duration trim."""
+    import shutil
+
+    active = [t for t in audio_tracks if not t.get("muted", False)]
+
+    if not active and not mute_original:
+        shutil.copy2(video_path, output_path)
+        return output_path
+
+    cmd = ["ffmpeg", "-y", "-i", video_path]
+    filter_parts = []
+    audio_labels = []
+
+    for i, track in enumerate(active):
+        cmd.extend(["-i", track["stored_path"]])
+        idx = i + 1  # video is input 0
+        label_out = f"[a{i}]"
+        parts = []
+
+        duration = track.get("duration")
+        if duration:
+            parts.append(f"atrim=0:{duration}")
+            parts.append("asetpts=PTS-STARTPTS")
+
+        offset_ms = int(track.get("offset", 0) * 1000)
+        if offset_ms > 0:
+            parts.append(f"adelay={offset_ms}|{offset_ms}")
+
+        volume = track.get("volume", 1.0)
+        if volume != 1.0:
+            parts.append(f"volume={volume}")
+
+        if not parts:
+            parts.append("acopy")
+
+        filter_chain = ",".join(parts)
+        filter_parts.append(f"[{idx}:a]{filter_chain}{label_out}")
+        audio_labels.append(label_out)
+
+    # Check if video has audio stream
+    try:
+        probe = ffmpeg.probe(video_path)
+        has_orig_audio = any(s.get("codec_type") == "audio" for s in probe.get("streams", []))
+    except Exception:
+        has_orig_audio = False
+
+    if active:
+        if mute_original or not has_orig_audio:
+            all_labels = audio_labels
+        else:
+            all_labels = ["[0:a]"] + audio_labels
+
+        if len(all_labels) == 1:
+            mix_label = all_labels[0]
+        else:
+            mix_label = "[aout]"
+            inputs_str = "".join(all_labels)
+            filter_parts.append(f"{inputs_str}amix=inputs={len(all_labels)}:normalize=0[aout]")
+    else:
+        # mute_original=True, no active tracks → strip audio
+        cmd_strip = ["ffmpeg", "-y", "-i", video_path, "-c:v", "copy", "-an", output_path]
+        result = subprocess.run(cmd_strip, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise ValueError(f"Failed to strip audio: {result.stderr}")
+        return output_path
+
+    filter_str = ";".join(filter_parts)
+    cmd.extend([
+        "-filter_complex", filter_str,
+        "-map", "0:v",
+        "-map", mix_label,
+        "-c:v", "copy",
+        "-c:a", "aac",
+        output_path,
+    ])
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise ValueError(f"Failed to mix audio tracks: {result.stderr}")
+    return output_path
+
+
 def image_to_video(
     image_path: str,
     output_path: str,

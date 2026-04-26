@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useProjectStore } from "../../stores/projectStore";
 import { useTimelineStore } from "../../stores/timelineStore";
-import { startExport, getExportStatus, uploadToDrive } from "../../api/client";
+import { useAudioStore } from "../../stores/audioStore";
+import { startExport, getExportStatus, uploadToDrive, getExportDownloadUrl } from "../../api/client";
 import { ProgressBar } from "../shared/ProgressBar";
 import type { ExportJob } from "../../types";
 
@@ -81,6 +82,8 @@ function ToggleButton({
 
 export function ExportSettings() {
   const { project, saveTimeline } = useProjectStore();
+  const { mode, clips, overlays } = useTimelineStore();
+  const { tracks: audioTracks, muteOriginal } = useAudioStore();
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>("youtube");
   const [qualityTier, setQualityTier] = useState<string | null>(null);
@@ -120,11 +123,11 @@ export function ExportSettings() {
     setExportJob(null);
 
     try {
-      const { mode, clips, overlays } = useTimelineStore.getState();
-      await saveTimeline({ mode, clips, overlays });
+      // Persist current timeline state to backend before exporting
+      await saveTimeline({ mode, clips, overlays, audioTracks, muteOriginal });
 
       const res = await startExport({
-        project_id: String(project.id),
+        project_id: project.id,
         ...(selectedPreset ? { preset: selectedPreset } : {}),
         ...(qualityTier ? { quality_tier: qualityTier } : {}),
         container,
@@ -401,11 +404,32 @@ export function ExportSettings() {
         <div>
           <ProgressBar
             progress={exportJob.progress}
-            label={progressLabel}
+            label={exportJob.status === "completed" ? "Export complete!" : progressLabel}
             status={exportJob.status}
           />
           {exportJob.status === "failed" && exportJob.error && (
             <p style={{ fontSize: 11, color: "#f87171", marginTop: 4 }}>{exportJob.error}</p>
+          )}
+          {exportJob.status === "completed" && (
+            <a
+              href={getExportDownloadUrl(exportJob.id)}
+              download
+              style={{
+                display: "block",
+                marginTop: 8,
+                padding: "8px 0",
+                textAlign: "center",
+                borderRadius: 5,
+                border: "1px solid var(--accent)",
+                background: "rgba(233,69,96,0.12)",
+                color: "var(--accent)",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Download Video
+            </a>
           )}
         </div>
       )}

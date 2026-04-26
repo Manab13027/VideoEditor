@@ -9,12 +9,14 @@ interface AudioState {
   beatMarkers: BeatMarker[];
   eq: EQSettings;
   noiseReduction: NoiseReductionSettings;
+  muteOriginal: boolean;
   addTrack: (track: AudioTrack) => void;
   removeTrack: (id: string) => void;
   updateTrack: (id: string, patch: Partial<AudioTrack>) => void;
   setBeatMarkers: (markers: BeatMarker[]) => void;
   setEQ: (patch: Partial<EQSettings>) => void;
   setNoiseReduction: (patch: Partial<NoiseReductionSettings>) => void;
+  setMuteOriginal: (v: boolean) => void;
   reset: () => void;
 }
 
@@ -23,6 +25,7 @@ export const useAudioStore = create<AudioState>((set) => ({
   beatMarkers: [],
   eq: DEFAULT_EQ,
   noiseReduction: DEFAULT_NR,
+  muteOriginal: false,
 
   addTrack: (track) =>
     set((s) => ({ tracks: [...s.tracks, track] })),
@@ -43,5 +46,7 @@ export const useAudioStore = create<AudioState>((set) => ({
   setNoiseReduction: (patch) =>
     set((s) => ({ noiseReduction: { ...s.noiseReduction, ...patch } })),
 
-  reset: () => set({ tracks: [], beatMarkers: [], eq: DEFAULT_EQ, noiseReduction: DEFAULT_NR }),
+  setMuteOriginal: (v) => set({ muteOriginal: v }),
+
+  reset: () => set({ tracks: [], beatMarkers: [], eq: DEFAULT_EQ, noiseReduction: DEFAULT_NR, muteOriginal: false }),
 }));

@@ -41,6 +41,14 @@ body {
   overflow: hidden;
 }
 
+.app-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* Tab Bar */
 .tab-bar {
   display: flex;
@@ -114,12 +122,14 @@ body {
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .panel-main {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .panel-left {
@@ -146,11 +156,24 @@ body {
 }
 
 .panel-bottom {
-  height: 140px;
   flex-shrink: 0;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-resize-handle {
+  height: 5px;
+  flex-shrink: 0;
+  cursor: ns-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+.panel-resize-handle:hover {
+  background: var(--accent);
+  opacity: 0.5;
 }
 
 /* Placeholder */

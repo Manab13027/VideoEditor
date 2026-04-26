@@ -1,8 +1,8 @@
 export interface MediaFile {
   id: string;
-  project_id: string | null;
+  project_id?: string | null;
   filename: string;
-  media_type: "video" | "image";
+  media_type: "video" | "image" | "audio";
   format: string;
   width: number | null;
   height: number | null;
@@ -10,7 +10,7 @@ export interface MediaFile {
   file_size_bytes: number;
   proxy_path: string | null;
   thumbnail_path: string | null;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface ClipColor {
@@ -84,6 +84,8 @@ export interface Timeline {
   mode: "storyboard" | "multitrack";
   clips: Clip[];
   overlays: Overlay[];
+  audioTracks?: AudioTrack[];
+  muteOriginal?: boolean;
 }
 
 export interface Project {
@@ -135,6 +137,7 @@ export interface ExportSettings {
   output_dir?: string;
   upload_to_drive: boolean;
   drive_folder_id?: string;
+  audio_settings?: AudioExportSettings;
 }
 
 export interface ExportJob {
@@ -182,4 +185,47 @@ export interface MultiExportJob {
   status: "pending" | "running" | "done" | "error";
   outputPath: string | null;
   error: string | null;
+}
+
+export type AudioTrackType = "original" | "music" | "voiceover";
+
+export interface AudioTrack {
+  id: string;
+  type: AudioTrackType;
+  mediaId: string;
+  name: string;
+  volume: number;       // 0.0 – 1.0
+  offset: number;       // seconds from composition start
+  muted: boolean;
+  waveform: number[];   // normalized amplitude array (0–1), ~200 points
+  duration?: number | null; // seconds to play; null = full duration
+}
+
+export interface BeatMarker {
+  timestamp: number;    // seconds
+  strength: number;     // 0–1
+}
+
+export interface EQSettings {
+  bass: number;         // -12 to +12 dB at 80 Hz
+  mid: number;          // -12 to +12 dB at 1 kHz
+  presence: number;     // -12 to +12 dB at 4 kHz
+  treble: number;       // -12 to +12 dB at 8 kHz
+}
+
+export interface NoiseReductionSettings {
+  enabled: boolean;
+  strength: number;     // 0.0 – 1.0
+}
+
+export interface AudioExportTrack {
+  mediaId: string;
+  volume: number;
+  offset: number;
+}
+
+export interface AudioExportSettings {
+  tracks: AudioExportTrack[];
+  eq: EQSettings;
+  noiseReductionStrength: number;
 }
