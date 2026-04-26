@@ -16,6 +16,7 @@ export function FileDropZone({
     accept: {
       "video/*": [],
       "image/*": [],
+      "audio/*": [],
     },
   });
 

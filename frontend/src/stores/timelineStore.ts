@@ -6,55 +6,30 @@ interface TimelineState {
   clips: Clip[];
   overlays: Overlay[];
   selectedClipId: string | null;
-  selectedClipIds: string[];
-  cropMode: boolean;
-  cropAspectRatio: number | null;
-  currentPreviewTime: number;
   setMode: (mode: "storyboard" | "multitrack") => void;
-  setCropMode: (on: boolean) => void;
-  setCropAspectRatio: (ratio: number | null) => void;
-  setCurrentPreviewTime: (t: number) => void;
   addClip: (clip: Omit<Clip, "order">) => void;
-  insertClipAt: (clip: Omit<Clip, "order">, atOrder: number) => void;
   removeClip: (id: string) => void;
   updateClip: (id: string, patch: Partial<Clip>) => void;
   reorderClips: (clips: Clip[]) => void;
+  insertClipAt: (clip: Omit<Clip, "order">, index: number) => void;
   selectClip: (id: string | null) => void;
-  toggleClipSelection: (id: string, addToSelection: boolean) => void;
-  clearClipSelection: () => void;
-  splitClipAt: (id: string, time: number) => void;
   addOverlay: (overlay: Overlay) => void;
   removeOverlay: (mediaId: string) => void;
   clearTimeline: () => void;
 }
 
-export const useTimelineStore = create<TimelineState>((set, get) => ({
+export const useTimelineStore = create<TimelineState>((set) => ({
   mode: "storyboard",
   clips: [],
   overlays: [],
   selectedClipId: null,
-  selectedClipIds: [],
-  cropMode: false,
-  cropAspectRatio: null,
-  currentPreviewTime: 0,
 
   setMode: (mode) => set({ mode }),
-  setCropMode: (on) => set({ cropMode: on }),
-  setCropAspectRatio: (ratio) => set({ cropAspectRatio: ratio }),
-  setCurrentPreviewTime: (t) => set({ currentPreviewTime: t }),
 
   addClip: (clip) =>
     set((state) => ({
       clips: [...state.clips, { ...clip, order: state.clips.length }],
     })),
-
-  insertClipAt: (clip, atOrder) =>
-    set((state) => {
-      const shifted = state.clips.map((c) =>
-        c.order >= atOrder ? { ...c, order: c.order + 1 } : c
-      );
-      return { clips: [...shifted, { ...clip, order: atOrder }] };
-    }),
 
   removeClip: (id) =>
     set((state) => ({
@@ -62,7 +37,6 @@ export const useTimelineStore = create<TimelineState>((set, get) => ({
         .filter((c) => c.id !== id)
         .map((c, i) => ({ ...c, order: i })),
       selectedClipId: state.selectedClipId === id ? null : state.selectedClipId,
-      selectedClipIds: state.selectedClipIds.filter((x) => x !== id),
     })),
 
   updateClip: (id, patch) =>
@@ -72,54 +46,14 @@ export const useTimelineStore = create<TimelineState>((set, get) => ({
 
   reorderClips: (clips) => set({ clips }),
 
-  selectClip: (id) => set({ selectedClipId: id }),
-
-  toggleClipSelection: (id, addToSelection) =>
+  insertClipAt: (clip, index) =>
     set((state) => {
-      if (addToSelection) {
-        const already = state.selectedClipIds.includes(id);
-        return {
-          selectedClipIds: already
-            ? state.selectedClipIds.filter((x) => x !== id)
-            : [...state.selectedClipIds, id],
-        };
-      }
-      return { selectedClipIds: [id], selectedClipId: id };
+      const sorted = [...state.clips].sort((a, b) => a.order - b.order);
+      sorted.splice(index, 0, { ...clip, order: index });
+      return { clips: sorted.map((c, i) => ({ ...c, order: i })) };
     }),
 
-  clearClipSelection: () => set({ selectedClipIds: [] }),
-
-  splitClipAt: (id, time) => {
-    const { clips } = get();
-    const clip = clips.find((c) => c.id === id);
-    if (!clip) return;
-
-    const start = clip.trim_start ?? 0;
-    const end = clip.trim_end ?? null;
-    // time must be within the clip's active range
-    if (time <= start || (end !== null && time >= end)) return;
-
-    const clipA: Clip = { ...clip, trim_end: time };
-    const clipB: Clip = {
-      ...clip,
-      id: `${clip.id}_split_${Date.now()}`,
-      trim_start: time,
-      trim_end: end,
-    };
-
-    set((state) => {
-      const others = state.clips.filter((c) => c.id !== id);
-      const before = others.filter((c) => c.order < clip.order);
-      const after = others.filter((c) => c.order >= clip.order);
-      const newClips = [
-        ...before,
-        { ...clipA, order: clip.order },
-        { ...clipB, order: clip.order + 0.5 },
-        ...after,
-      ].map((c, i) => ({ ...c, order: i }));
-      return { clips: newClips, selectedClipId: clipA.id };
-    });
-  },
+  selectClip: (id) => set({ selectedClipId: id }),
 
   addOverlay: (overlay) =>
     set((state) => ({ overlays: [...state.overlays, overlay] })),

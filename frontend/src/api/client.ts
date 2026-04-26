@@ -30,21 +30,11 @@ export const applyCrop = (
   crop: { x: number; y: number; w: number; h: number }
 ): Promise<{ data: MediaFile }> => api.post(`/media/${id}/crop`, crop);
 
-export const mergeClips = (
-  clips: Array<{ media_id: string; trim_start: number; trim_end: number | null }>
-): Promise<{ data: MediaFile }> =>
-  api.post("/media/merge", {
-    clips: clips.map((c) => ({ ...c, media_id: Number(c.media_id) })),
-  });
-
 export const getMediaProxyUrl = (id: string, bust?: number): string =>
   `http://localhost:8000/api/media/${id}/proxy${bust ? `?t=${bust}` : ""}`;
 
 export const getMediaThumbnailUrl = (id: string): string =>
   `http://localhost:8000/api/media/${id}/thumbnail`;
-
-export const getMediaDownloadUrl = (id: string): string =>
-  `http://localhost:8000/api/media/${id}/download`;
 
 // Projects
 export const createProject = (name: string): Promise<{ data: Project }> =>
@@ -78,6 +68,9 @@ export const startExport = (settings: ExportSettings): Promise<{ data: ExportJob
 
 export const getExportStatus = (jobId: string): Promise<{ data: ExportJob }> =>
   api.get(`/export/${jobId}/status`);
+
+export const getExportDownloadUrl = (jobId: string): string =>
+  `${api.defaults.baseURL}/export/${jobId}/download`;
 
 // Drive
 export const getDriveStatus = (): Promise<{ data: { authenticated: boolean; email?: string } }> =>

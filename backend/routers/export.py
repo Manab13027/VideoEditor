@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Dict
 
 import aiosqlite
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from backend.database import get_db
 from backend.models.job import ExportJobResponse, ExportRequest
@@ -155,4 +157,43 @@ async def get_export_status(job_id: str) -> ExportJobResponse:
         output_path=result.get("output_path"),
         error=row["error_message"],
         created_at=row["created_at"],
+    )
+
+
+@router.get("/{job_id}/download")
+async def download_export(job_id: str) -> FileResponse:
+    """Download the completed export file."""
+    output_path: str | None = None
+
+    if job_id in _active_exports:
+        job = _active_exports[job_id]
+        if job["status"] != "completed" or not job.get("output_path"):
+            raise HTTPException(status_code=409, detail="Export not yet completed")
+        output_path = job["output_path"]
+    else:
+        db: aiosqlite.Connection = await get_db()
+        try:
+            async with db.execute(
+                "SELECT status, result_json FROM jobs WHERE json_extract(config_json, '$.job_uuid') = ?",
+                (job_id,),
+            ) as cur:
+                row = await cur.fetchone()
+        finally:
+            await db.close()
+
+        if row is None:
+            raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
+        if row["status"] != "completed":
+            raise HTTPException(status_code=409, detail="Export not yet completed")
+        result = json.loads(row["result_json"]) if row["result_json"] else {}
+        output_path = result.get("output_path")
+
+    if not output_path or not os.path.exists(output_path):
+        raise HTTPException(status_code=404, detail="Export file not found on disk")
+
+    filename = os.path.basename(output_path)
+    return FileResponse(
+        output_path,
+        media_type="video/mp4",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
