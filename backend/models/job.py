@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BatchOperation(BaseModel):
@@ -48,19 +48,15 @@ class BatchJobResponse(BaseModel):
 
 
 class ExportRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")  # tolerate unknown fields from frontend
     project_id: str
-
-    @field_validator("project_id", mode="before")
-    @classmethod
-    def coerce_project_id(cls, v: object) -> str:
-        return str(v)
     preset: Optional[str] = None
     container: str = "mp4"
     video_codec: str = "libx264"
     audio_codec: str = "aac"
     width: Optional[int] = None
     height: Optional[int] = None
-    bitrate: Optional[int] = None
+    bitrate: Optional[int] = None  # Mbps as integer (e.g. 5 means 5M)
     fps: int = 30
     quality_tier: Optional[str] = None
     output_dir: Optional[str] = None

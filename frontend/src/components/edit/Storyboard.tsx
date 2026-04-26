@@ -14,7 +14,7 @@ export function Storyboard({ zoom }: StoryboardProps) {
   const { clips, selectedClipId, selectClip, removeClip, reorderClips, insertClipAt } =
     useTimelineStore();
   const { mediaFiles } = useProjectStore();
-  const { tracks: audioTracks, removeTrack } = useAudioStore();
+  const { tracks: audioTracks, addTrack, removeTrack, updateTrack } = useAudioStore();
 
   const dragId = useRef<string | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
@@ -266,74 +266,176 @@ export function Storyboard({ zoom }: StoryboardProps) {
       </div>
 
       {/* ── Audio track lane ── */}
-      <div
-        onDragOver={(e) => e.preventDefault()}
+      <AudioLane
+        audioTracks={audioTracks}
         onDrop={handleAudioDrop}
+        onRemove={removeTrack}
+        onToggleMute={(id) => {
+          const t = audioTracks.find((x) => x.id === id);
+          if (t) updateTrack(id, { muted: !t.muted });
+        }}
+        onReorder={(from, to) => {
+          const arr = [...audioTracks];
+          const [moved] = arr.splice(from, 1);
+          arr.splice(to, 0, moved);
+          arr.forEach((t, i) => updateTrack(t.id, { offset: i * 0 })); // keep offsets, just reorder UI
+          // re-add in new order by removing all then adding back
+          arr.forEach((t) => removeTrack(t.id));
+          arr.forEach((t) => addTrack(t));
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Audio Lane sub-component ──────────────────────────────────────────────────
+interface AudioLaneProps {
+  audioTracks: import("../../types").AudioTrack[];
+  onDrop: (e: React.DragEvent) => void;
+  onRemove: (id: string) => void;
+  onToggleMute: (id: string) => void;
+  onReorder: (from: number, to: number) => void;
+}
+
+function AudioLane({ audioTracks, onDrop, onRemove, onToggleMute, onReorder }: AudioLaneProps) {
+  const dragIdx = useRef<number | null>(null);
+  const [muteOriginal, setMuteOriginal] = useState(false);
+
+  return (
+    <div
+      style={{
+        borderTop: "1px solid var(--border)",
+        background: "var(--bg-primary)",
+        flexShrink: 0,
+      }}
+    >
+      {/* Mute original video audio toggle */}
+      <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 6,
+          gap: 8,
           padding: "4px 12px",
-          borderTop: "1px solid var(--border)",
-          background: "var(--bg-primary)",
-          minHeight: 36,
-          overflowX: "auto",
-          flexShrink: 0,
+          borderBottom: "1px solid var(--border)",
         }}
       >
-        <span style={{ fontSize: 11, color: "var(--text-secondary)", flexShrink: 0, marginRight: 4 }}>
-          🔊
+        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>🎥 Original audio</span>
+        <button
+          onClick={() => setMuteOriginal((v) => !v)}
+          style={{
+            padding: "2px 8px",
+            fontSize: 10,
+            borderRadius: 3,
+            border: `1px solid ${muteOriginal ? "var(--accent)" : "var(--border)"}`,
+            background: muteOriginal ? "rgba(233,69,96,0.15)" : "transparent",
+            color: muteOriginal ? "var(--accent)" : "var(--text-secondary)",
+            cursor: "pointer",
+          }}
+        >
+          {muteOriginal ? "🔇 Muted" : "🔊 Unmuted"}
+        </button>
+        <span style={{ fontSize: 10, color: "var(--text-secondary)", marginLeft: "auto" }}>
+          🎵 Drag audio from Media Browser to add tracks
         </span>
-        {audioTracks.length === 0 ? (
-          <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-            Drop audio here to add a track
+      </div>
+
+      {/* Audio track rows */}
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={onDrop}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          padding: "4px 12px",
+          minHeight: 36,
+          maxHeight: 120,
+          overflowY: "auto",
+        }}
+      >
+        {audioTracks.length === 0 && (
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", padding: "4px 0" }}>
+            No audio tracks — drop audio files here
           </span>
-        ) : (
-          audioTracks.map((t) => (
-            <div
-              key={t.id}
+        )}
+        {audioTracks.map((t, i) => (
+          <div
+            key={t.id}
+            draggable
+            onDragStart={() => { dragIdx.current = i; }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.stopPropagation();
+              if (dragIdx.current !== null && dragIdx.current !== i) {
+                onReorder(dragIdx.current, i);
+              }
+              dragIdx.current = null;
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "3px 8px",
+              borderRadius: 4,
+              background: t.muted ? "#2a2020" : "#1a3d2e",
+              border: `1px solid ${t.muted ? "#5c2a2a" : "#2a5c3e"}`,
+              cursor: "grab",
+              opacity: t.muted ? 0.6 : 1,
+            }}
+          >
+            {/* Drag handle */}
+            <span style={{ fontSize: 10, color: "var(--text-secondary)", cursor: "grab" }}>⠿</span>
+
+            {/* Track name */}
+            <span
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                padding: "3px 8px",
-                borderRadius: 4,
-                background: "#1a3d2e",
-                border: "1px solid #2a5c3e",
-                flexShrink: 0,
+                fontSize: 11,
+                color: t.muted ? "#f87171" : "#6ee7b7",
+                flex: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
                 maxWidth: 160,
               }}
             >
-              <span
-                style={{
-                  fontSize: 11,
-                  color: "#6ee7b7",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  maxWidth: 120,
-                }}
-              >
-                {t.name}
-              </span>
-              <button
-                onClick={() => removeTrack(t.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#6ee7b7",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  padding: 0,
-                  lineHeight: 1,
-                  flexShrink: 0,
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))
-        )}
+              {t.name}
+            </span>
+
+            {/* Mute toggle */}
+            <button
+              onClick={() => onToggleMute(t.id)}
+              title={t.muted ? "Unmute" : "Mute"}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 12,
+                cursor: "pointer",
+                padding: 0,
+                lineHeight: 1,
+                color: t.muted ? "#f87171" : "#6ee7b7",
+              }}
+            >
+              {t.muted ? "🔇" : "🔊"}
+            </button>
+
+            {/* Remove */}
+            <button
+              onClick={() => onRemove(t.id)}
+              title="Remove track"
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--text-secondary)",
+                fontSize: 13,
+                cursor: "pointer",
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
