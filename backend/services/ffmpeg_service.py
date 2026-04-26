@@ -8,7 +8,7 @@ from typing import List
 
 import ffmpeg
 
-from models.media import MediaProbeResult
+from backend.models.media import MediaProbeResult
 
 
 def probe_file(file_path: str) -> MediaProbeResult:
