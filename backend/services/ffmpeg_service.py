@@ -399,6 +399,17 @@ def mix_audio_tracks(
             parts.append(f"atrim=0:{duration}")
             parts.append("asetpts=PTS-STARTPTS")
 
+        # Fade in
+        fade_in = track.get("fade_in", 0.0) or 0.0
+        if fade_in > 0:
+            parts.append(f"afade=t=in:st=0:d={fade_in}")
+
+        # Fade out — starts at (duration - fade_out) seconds
+        fade_out = track.get("fade_out", 0.0) or 0.0
+        if fade_out > 0 and duration and duration > fade_out:
+            fade_out_start = round(duration - fade_out, 6)
+            parts.append(f"afade=t=out:st={fade_out_start}:d={fade_out}")
+
         offset_ms = int(track.get("offset", 0) * 1000)
         if offset_ms > 0:
             parts.append(f"adelay={offset_ms}|{offset_ms}")
@@ -408,7 +419,7 @@ def mix_audio_tracks(
             parts.append(f"volume={volume}")
 
         if not parts:
-            parts.append("acopy")
+            parts.append("anull")  # correct no-op audio filter (was "acopy" — bug fix)
 
         filter_chain = ",".join(parts)
         filter_parts.append(f"[{idx}:a]{filter_chain}{label_out}")
