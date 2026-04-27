@@ -37,6 +37,8 @@ class AudioTrackData(BaseModel):
     muted: bool = False
     duration: Optional[float] = None  # seconds to play; None = full file
     waveform: List[float] = Field(default_factory=list)
+    fade_in: float = 0.0         # seconds; 0 = no fade
+    fade_out: float = 0.0        # seconds; 0 = no fade
 
 
 class TimelineData(BaseModel):
