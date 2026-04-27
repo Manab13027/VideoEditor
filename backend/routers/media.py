@@ -290,3 +290,88 @@ async def apply_crop_to_file(media_id: int, body: CropRequest) -> MediaFileInfo:
         await db2.close()
 
     return _row_to_media_info(updated)
+
+
+@router.post("/{media_id}/crop-new", response_model=MediaFileInfo)
+async def crop_to_new_file(media_id: int, body: CropRequest) -> MediaFileInfo:
+    """Crop a media file and save the result as a NEW file.
+
+    The original file is untouched. Returns the new MediaFileInfo.
+    The caller is responsible for updating their clip's media_id to the new ID.
+    """
+    db: aiosqlite.Connection = await get_db()
+    try:
+        async with db.execute("SELECT * FROM media_files WHERE id = ?", (media_id,)) as cur:
+            row = await cur.fetchone()
+    finally:
+        await db.close()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"Media file {media_id} not found")
+
+    stored_path = row["stored_path"]
+    original_filename = row["filename"]
+    media_type = row["media_type"]
+
+    # Build new filename: insert _cropped before extension
+    stem = Path(stored_path).stem
+    ext = Path(stored_path).suffix
+    new_filename = f"{stem}_cropped{ext}"
+    new_path = str(settings.upload_dir / new_filename)
+
+    # Avoid collisions — append counter if file exists
+    counter = 1
+    while Path(new_path).exists():
+        new_filename = f"{stem}_cropped_{counter}{ext}"
+        new_path = str(settings.upload_dir / new_filename)
+        counter += 1
+
+    try:
+        crop_video(stored_path, new_path, body.x, body.y, body.w, body.h)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Crop failed: {exc}") from exc
+
+    # Probe new file for updated dimensions
+    width, height, duration_seconds = body.w, body.h, row["duration_seconds"]
+    if media_type == "video":
+        try:
+            probe = probe_file(new_path)
+            width = probe.width
+            height = probe.height
+            duration_seconds = probe.duration_seconds
+        except Exception:
+            pass
+
+    file_size = Path(new_path).stat().st_size
+    display_name = f"{Path(original_filename).stem}_cropped{Path(original_filename).suffix}"
+
+    db2: aiosqlite.Connection = await get_db()
+    try:
+        cursor = await db2.execute(
+            """
+            INSERT INTO media_files
+                (filename, original_path, stored_path, media_type, format,
+                 file_size_bytes, width, height, duration_seconds, project_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                display_name,
+                display_name,
+                new_path,
+                media_type,
+                ext.lstrip("."),
+                file_size,
+                width,
+                height,
+                duration_seconds,
+                row["project_id"],
+            ),
+        )
+        await db2.commit()
+        new_id = cursor.lastrowid
+        async with db2.execute("SELECT * FROM media_files WHERE id = ?", (new_id,)) as cur:
+            new_row = await cur.fetchone()
+    finally:
+        await db2.close()
+
+    return _row_to_media_info(new_row)
