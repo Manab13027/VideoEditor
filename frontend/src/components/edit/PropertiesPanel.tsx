@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTimelineStore } from "../../stores/timelineStore";
 import { useProjectStore } from "../../stores/projectStore";
+import { useAudioStore } from "../../stores/audioStore";
 import { AspectRatioSelector } from "../shared/AspectRatioSelector";
 import { cropToNewFile } from "../../api/client";
 import type { AspectRatio } from "../shared/AspectRatioSelector";
@@ -62,11 +63,105 @@ function NumInput({
   );
 }
 
+function AudioProperties() {
+  const { tracks, selectedTrackId, updateTrack } = useAudioStore();
+  const track = tracks.find((t) => t.id === selectedTrackId) ?? null;
+
+  if (!track) return null;
+
+  return (
+    <div style={{ overflowY: "auto", height: "100%" }}>
+      <Section>
+        <Label>🎵 Audio Track</Label>
+        <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 6,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {track.name}
+        </div>
+      </Section>
+
+      {/* Volume */}
+      <Section>
+        <Label>Volume</Label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="range" min={0} max={1} step={0.01}
+            value={track.volume}
+            onChange={(e) => updateTrack(track.id, { volume: Number(e.target.value) })}
+            style={{ flex: 1, accentColor: "var(--accent)" }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-primary)", width: 32, textAlign: "right" }}>
+            {Math.round(track.volume * 100)}%
+          </span>
+        </div>
+      </Section>
+
+      {/* Fade In */}
+      <Section>
+        <Label>▶︎ Fade In</Label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="range" min={0} max={5} step={0.1}
+            value={track.fade_in ?? 0}
+            onChange={(e) => updateTrack(track.id, { fade_in: Number(e.target.value) })}
+            style={{ flex: 1, accentColor: "#533483" }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-primary)", width: 32, textAlign: "right" }}>
+            {(track.fade_in ?? 0).toFixed(1)}s
+          </span>
+        </div>
+        <svg width="100%" height="20" viewBox="0 0 200 20" preserveAspectRatio="none"
+          style={{ marginTop: 4, display: "block" }}>
+          <path d="M0,20 Q80,20 100,0 L200,0" fill="none" stroke="#533483" strokeWidth="1.5" />
+          <path d="M0,20 Q80,20 100,0 L200,0 L200,20 Z" fill="rgba(83,52,131,0.2)" />
+        </svg>
+      </Section>
+
+      {/* Fade Out */}
+      <Section>
+        <Label>⏹ Fade Out</Label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="range" min={0} max={5} step={0.1}
+            value={track.fade_out ?? 0}
+            onChange={(e) => updateTrack(track.id, { fade_out: Number(e.target.value) })}
+            style={{ flex: 1, accentColor: "var(--accent)" }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-primary)", width: 32, textAlign: "right" }}>
+            {(track.fade_out ?? 0).toFixed(1)}s
+          </span>
+        </div>
+        <svg width="100%" height="20" viewBox="0 0 200 20" preserveAspectRatio="none"
+          style={{ marginTop: 4, display: "block" }}>
+          <path d="M0,0 L100,0 Q120,0 200,20" fill="none" stroke="#e94560" strokeWidth="1.5" />
+          <path d="M0,0 L100,0 Q120,0 200,20 L0,20 Z" fill="rgba(233,69,96,0.1)" />
+        </svg>
+      </Section>
+
+      {/* Offset */}
+      <Section>
+        <Label>⏱ Offset</Label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="range" min={0} max={60} step={0.1}
+            value={track.offset}
+            onChange={(e) => updateTrack(track.id, { offset: Number(e.target.value) })}
+            style={{ flex: 1, accentColor: "#3fb950" }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-primary)", width: 40, textAlign: "right" }}>
+            {track.offset.toFixed(1)}s
+          </span>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
 export function PropertiesPanel() {
   const { selectedClipId, clips, updateClip } = useTimelineStore();
   const { mediaFiles, addMediaFile } = useProjectStore();
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState<string | null>(null);
+
+  const { selectedTrackId } = useAudioStore();
+
+  // Show audio properties if an audio track is selected
+  if (selectedTrackId) return <AudioProperties />;
 
   const clip = clips.find((c) => c.id === selectedClipId) ?? null;
   const media = clip ? mediaFiles.find((f) => f.id === clip.media_id) ?? null : null;

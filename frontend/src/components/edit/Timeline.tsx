@@ -23,7 +23,8 @@ const ROW_PAD = 8;    // padding above/below clips in a row
 function MultiTrack({ zoom }: { zoom: number }) {
   const { clips, selectedClipId, selectClip, removeClip, insertClipAt, reorderClips } = useTimelineStore();
   const { mediaFiles } = useProjectStore();
-  const { tracks: audioTracks, addTrack, removeTrack, updateTrack, muteOriginal, setMuteOriginal } = useAudioStore();
+  const { tracks: audioTracks, addTrack, removeTrack, updateTrack, muteOriginal, setMuteOriginal,
+          selectedTrackId: selectedAudioId, setSelectedTrackId: setSelectedAudioId } = useAudioStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Drag-to-reorder state
@@ -39,7 +40,6 @@ function MultiTrack({ zoom }: { zoom: number }) {
   // Video clip clipboard
   const [clipboard, setClipboard] = useState<typeof sorted[number] | null>(null);
   // Audio track clipboard + selection
-  const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [audioClipboard, setAudioClipboard] = useState<(typeof audioTracks)[number] | null>(null);
 
   // Compute clip durations and cumulative start times
