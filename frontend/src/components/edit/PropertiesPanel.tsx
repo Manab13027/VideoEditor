@@ -5,6 +5,7 @@ import { useAudioStore } from "../../stores/audioStore";
 import { AspectRatioSelector } from "../shared/AspectRatioSelector";
 import { cropToNewFile } from "../../api/client";
 import type { AspectRatio } from "../shared/AspectRatioSelector";
+import { TransitionPicker } from "./TransitionPicker";
 
 const SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 4] as const;
 
@@ -302,6 +303,16 @@ export function PropertiesPanel() {
           />
         </Section>
       )}
+
+      {/* TRANSITION */}
+      <Section>
+        <Label>Transition In</Label>
+        <TransitionPicker
+          value={clip.transition_in ?? "none"}
+          duration={clip.transition_dur ?? 0.5}
+          onChange={(type, dur) => updateClip(clip.id, { transition_in: type, transition_dur: dur })}
+        />
+      </Section>
     </div>
   );
 }

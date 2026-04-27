@@ -415,6 +415,31 @@ function MultiTrack({ zoom }: { zoom: number }) {
                     <button onClick={(ev) => { ev.stopPropagation(); removeClip(clip.id); }}
                       style={{ position: "absolute", top: 3, right: 3, width: 16, height: 16, borderRadius: "50%", background: "rgba(200,50,50,0.85)", border: "none", color: "#fff", fontSize: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                   </div>
+                  {/* T badge — between this clip and the next */}
+                  {i < sorted.length - 1 && (
+                    <div
+                      onClick={() => selectClip(sorted[i + 1].id)}
+                      title={`Transition into next clip: ${sorted[i + 1].transition_in ?? "none"}`}
+                      style={{
+                        position: "absolute",
+                        left: (clipStarts[i] + clipDurs[i]) * PPS - 10,
+                        top: ROW_PAD + VIDEO_H / 2 - 9,
+                        width: 18, height: 18,
+                        borderRadius: "50%",
+                        background: (sorted[i + 1].transition_in && sorted[i + 1].transition_in !== "none")
+                          ? "var(--accent)" : "var(--bg-tertiary)",
+                        border: "1px solid var(--border)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 8, fontWeight: 700,
+                        color: (sorted[i + 1].transition_in && sorted[i + 1].transition_in !== "none")
+                          ? "#fff" : "var(--text-secondary)",
+                        cursor: "pointer", zIndex: 5,
+                        userSelect: "none",
+                      }}
+                    >
+                      T
+                    </div>
+                  )}
                 </div>
               );
             })}
