@@ -216,8 +216,28 @@ function MultiTrack({ zoom }: { zoom: number }) {
 
   // Row heights
   const videoRowH = VIDEO_H + ROW_PAD * 2;
-  const audioRowH = AUDIO_H + ROW_PAD * 2;
+  const audioRowH = 72;  // enough for track name + 2 fade sliders
   const totalH = videoRowH + (audioTracks.length > 0 ? audioTracks.length * audioRowH : audioRowH);
+
+  // Renders a compact labelled slider for fade_in / fade_out
+  const FadeSlider = ({
+    trackId, field, value, icon,
+  }: {
+    trackId: string; field: "fade_in" | "fade_out"; value: number; icon: string;
+  }) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+      <span style={{ fontSize: 9, color: "var(--text-secondary)", width: 14, flexShrink: 0 }}>{icon}</span>
+      <input
+        type="range" min={0} max={5} step={0.1}
+        value={value}
+        onChange={(e) => updateTrack(trackId, { [field]: Number(e.target.value) })}
+        style={{ flex: 1, height: 3, accentColor: field === "fade_in" ? "#533483" : "#e94560", cursor: "pointer" }}
+      />
+      <span style={{ fontSize: 9, color: "var(--text-primary)", width: 24, textAlign: "right", flexShrink: 0 }}>
+        {value.toFixed(1)}s
+      </span>
+    </div>
+  );
 
   return (
     <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
@@ -252,16 +272,23 @@ function MultiTrack({ zoom }: { zoom: number }) {
           audioTracks.map((t) => (
             <div key={t.id} style={{
               height: audioRowH, borderBottom: "1px solid var(--border)",
-              display: "flex", alignItems: "center", padding: "0 8px", gap: 4,
+              display: "flex", flexDirection: "column", justifyContent: "center",
+              padding: "4px 8px", gap: 2,
             }}>
-              <button onClick={() => updateTrack(t.id, { muted: !t.muted })}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1 }}>
-                {t.muted ? "🔇" : "🔊"}
-              </button>
-              <span style={{
-                fontSize: 9, color: t.muted ? "#f87171" : "var(--text-secondary)",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1,
-              }}>{t.name}</span>
+              {/* Track name + mute */}
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                <button onClick={() => updateTrack(t.id, { muted: !t.muted })}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1 }}>
+                  {t.muted ? "🔇" : "🔊"}
+                </button>
+                <span style={{
+                  fontSize: 9, color: t.muted ? "#f87171" : "var(--text-secondary)",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1,
+                }}>{t.name}</span>
+              </div>
+              {/* Fade sliders */}
+              <FadeSlider trackId={t.id} field="fade_in"  value={t.fade_in  ?? 0} icon="▶︎" />
+              <FadeSlider trackId={t.id} field="fade_out" value={t.fade_out ?? 0} icon="⏹" />
             </div>
           ))
         )}
