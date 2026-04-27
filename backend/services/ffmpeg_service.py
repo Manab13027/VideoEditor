@@ -501,3 +501,108 @@ def image_to_video(
             f"Failed to convert image '{image_path}' to video: {exc.stderr.decode(errors='replace')}"
         ) from exc
     return output_path
+
+
+# Maps our TransitionType names → ffmpeg xfade transition names
+_XFADE_MAP: dict[str, str] = {
+    "fade":       "dissolve",
+    "crossfade":  "fadeblack",
+    "wipe_left":  "wipeleft",
+    "wipe_right": "wiperight",
+    "wipe_up":    "wipeup",
+    "wipe_down":  "wipedown",
+    "slide_left": "slideleft",
+    "slide_right":"slideright",
+    "zoom_in":    "zoomin",
+    "zoom_out":   "smoothdown",
+    "blur":       "hblur",
+    "flash":      "fadewhite",
+    "glitch":     "pixelize",
+    "pixelate":   "pixelize",
+    "film_burn":  "fadegrays",
+    "radial":     "radial",
+    "circle":     "circlecrop",
+    "reveal":     "revealleft",
+    "fade_black": "fadeblack",
+    "fade_white": "fadewhite",
+}
+
+
+def apply_transitions_concat(
+    clip_paths: List[str],
+    clip_durations: List[float],
+    transitions: List[tuple],   # list of (transition_type: str, duration: float) per clip; index 0 ignored
+    output_path: str,
+) -> str:
+    """Concatenate clips with xfade transitions between them.
+
+    transitions[i] = (type, dur) applied BEFORE clip i.
+    transitions[0] is always ignored (no transition before first clip).
+    Falls back to simple concat when all transitions are 'none'.
+
+    Returns output_path on success. Raises ValueError on failure.
+    """
+    if not clip_paths:
+        raise ValueError("clip_paths must not be empty")
+    if len(clip_paths) != len(clip_durations) or len(clip_paths) != len(transitions):
+        raise ValueError("clip_paths, clip_durations, and transitions must have equal length")
+
+    n = len(clip_paths)
+
+    # Check if any non-none transition is present
+    has_transitions = any(
+        t[0] not in ("none", None) for t in transitions[1:]
+    )
+
+    if n == 1 or not has_transitions:
+        # No transitions — use simple concat demuxer
+        return concat_media(clip_paths, output_path)
+
+    # Build ffmpeg command with xfade filter_complex
+    cmd = ["ffmpeg", "-y"]
+    for p in clip_paths:
+        cmd.extend(["-i", p])
+
+    video_filters: list[str] = []
+    audio_filters: list[str] = []
+
+    # Label each input video/audio stream
+    prev_v = "[0:v]"
+    prev_a = "[0:a]"
+    cumulative_offset: float = clip_durations[0]
+
+    for i in range(1, n):
+        t_type, t_dur = transitions[i]
+        xfade_name = _XFADE_MAP.get(t_type, "dissolve")
+        offset = round(cumulative_offset - t_dur, 6)
+
+        out_v = f"[v{i}]"
+        out_a = f"[a{i}]"
+
+        video_filters.append(
+            f"{prev_v}[{i}:v]xfade=transition={xfade_name}:duration={t_dur}:offset={offset}{out_v}"
+        )
+        audio_filters.append(
+            f"{prev_a}[{i}:a]acrossfade=d={t_dur}{out_a}"
+        )
+
+        prev_v = out_v
+        prev_a = out_a
+        cumulative_offset = offset + clip_durations[i]
+
+    filter_complex = ";".join(video_filters + audio_filters)
+
+    cmd += [
+        "-filter_complex", filter_complex,
+        "-map", prev_v,
+        "-map", prev_a,
+        "-c:v", "libx264", "-crf", "23", "-preset", "fast",
+        "-c:a", "aac",
+        output_path,
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise ValueError(f"Failed to apply transitions: {result.stderr}")
+
+    return output_path
