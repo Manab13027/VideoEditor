@@ -503,6 +503,15 @@ def image_to_video(
     return output_path
 
 
+def _has_audio(path: str) -> bool:
+    """Return True if the media file at *path* has at least one audio stream."""
+    try:
+        info = ffmpeg.probe(path)
+        return any(s.get("codec_type") == "audio" for s in info.get("streams", []))
+    except Exception:
+        return False
+
+
 # Maps our TransitionType names → ffmpeg xfade transition names
 _XFADE_MAP: dict[str, str] = {
     "fade":       "dissolve",
@@ -558,6 +567,9 @@ def apply_transitions_concat(
         # No transitions — use simple concat demuxer
         return concat_media(clip_paths, output_path)
 
+    # Determine if all clips have audio (required for acrossfade)
+    all_have_audio = all(_has_audio(p) for p in clip_paths)
+
     # Build ffmpeg command with xfade filter_complex
     cmd = ["ffmpeg", "-y"]
     for p in clip_paths:
@@ -582,22 +594,26 @@ def apply_transitions_concat(
         video_filters.append(
             f"{prev_v}[{i}:v]xfade=transition={xfade_name}:duration={t_dur}:offset={offset}{out_v}"
         )
-        audio_filters.append(
-            f"{prev_a}[{i}:a]acrossfade=d={t_dur}{out_a}"
-        )
+        if all_have_audio:
+            audio_filters.append(
+                f"{prev_a}[{i}:a]acrossfade=d={t_dur}{out_a}"
+            )
+            prev_a = out_a
 
         prev_v = out_v
-        prev_a = out_a
         cumulative_offset = offset + clip_durations[i]
 
-    filter_complex = ";".join(video_filters + audio_filters)
+    all_filters = video_filters + (audio_filters if all_have_audio else [])
+    filter_complex = ";".join(all_filters)
 
     cmd += [
         "-filter_complex", filter_complex,
         "-map", prev_v,
-        "-map", prev_a,
+    ]
+    if all_have_audio and audio_filters:
+        cmd += ["-map", prev_a, "-c:a", "aac"]
+    cmd += [
         "-c:v", "libx264", "-crf", "23", "-preset", "fast",
-        "-c:a", "aac",
         output_path,
     ]
 

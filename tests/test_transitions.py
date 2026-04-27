@@ -6,7 +6,9 @@ from unittest.mock import patch
 
 def _run_transitions(clip_paths, clip_durations, transitions, output_path):
     from backend.services.ffmpeg_service import apply_transitions_concat
-    with patch("subprocess.run") as mock_run:
+    _audio_probe = {"streams": [{"codec_type": "audio"}]}
+    with patch("subprocess.run") as mock_run, \
+         patch("ffmpeg.probe", return_value=_audio_probe):
         mock_run.return_value = subprocess.CompletedProcess([], 0, "", "")
         apply_transitions_concat(clip_paths, clip_durations, transitions, output_path)
     return mock_run.call_args[0][0]
