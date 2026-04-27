@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTimelineStore } from "../../stores/timelineStore";
 import { useProjectStore } from "../../stores/projectStore";
 import { AspectRatioSelector } from "../shared/AspectRatioSelector";
-import { applyCrop } from "../../api/client";
+import { cropToNewFile } from "../../api/client";
 import type { AspectRatio } from "../shared/AspectRatioSelector";
 
 const SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 4] as const;
@@ -64,7 +64,7 @@ function NumInput({
 
 export function PropertiesPanel() {
   const { selectedClipId, clips, updateClip } = useTimelineStore();
-  const { mediaFiles } = useProjectStore();
+  const { mediaFiles, addMediaFile } = useProjectStore();
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState<string | null>(null);
 
@@ -101,10 +101,15 @@ export function PropertiesPanel() {
     setApplying(true);
     setApplyMsg(null);
     try {
-      await applyCrop(String(media.id), crop);
-      setApplyMsg("Applied to file.");
+      const res = await cropToNewFile(String(media.id), crop);
+      const newMedia = res.data;
+      // Add new file to media browser
+      addMediaFile(newMedia);
+      // Rewire this clip to point at the new cropped file
+      updateClip(clip.id, { media_id: newMedia.id, crop: null });
+      setApplyMsg(`Saved as ${newMedia.filename}`);
     } catch {
-      setApplyMsg("Apply failed.");
+      setApplyMsg("Save failed.");
     } finally {
       setApplying(false);
     }
@@ -127,7 +132,7 @@ export function PropertiesPanel() {
           className="btn btn-primary"
           style={{ marginTop: 8, width: "100%", fontSize: 12, padding: "5px 0" }}
         >
-          {applying ? "Applying…" : "Save & Apply to File"}
+          {applying ? "Saving…" : "Save as New File"}
         </button>
         {applyMsg && (
           <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>{applyMsg}</p>
