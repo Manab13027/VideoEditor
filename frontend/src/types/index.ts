@@ -47,7 +47,28 @@ export interface ClipEffects {
   shake:       number;  // 0–1
 }
 
-export type TransitionType = "none" | "fade" | "crossfade" | "wipe_left" | "wipe_right" | "zoom_in" | "glitch";
+export type TransitionType =
+  | "none"
+  | "fade"
+  | "crossfade"
+  | "wipe_left"
+  | "wipe_right"
+  | "wipe_up"
+  | "wipe_down"
+  | "slide_left"
+  | "slide_right"
+  | "zoom_in"
+  | "zoom_out"
+  | "blur"
+  | "flash"
+  | "glitch"
+  | "pixelate"
+  | "film_burn"
+  | "radial"
+  | "circle"
+  | "reveal"
+  | "fade_black"
+  | "fade_white";
 
 export interface Clip {
   id: string;
@@ -199,6 +220,8 @@ export interface AudioTrack {
   muted: boolean;
   waveform: number[];   // normalized amplitude array (0–1), ~200 points
   duration?: number | null; // seconds to play; null = full duration
+  fade_in?: number;     // seconds, 0 = no fade
+  fade_out?: number;    // seconds, 0 = no fade
 }
 
 export interface BeatMarker {
