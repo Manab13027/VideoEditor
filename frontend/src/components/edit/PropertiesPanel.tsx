@@ -313,6 +313,8 @@ export function PropertiesPanel() {
           onChange={(type, dur) => updateClip(clip.id, { transition_in: type, transition_dur: dur })}
         />
       </Section>
+
+      {/* Captions are edited in the Preview panel below the video/image */}
     </div>
   );
 }

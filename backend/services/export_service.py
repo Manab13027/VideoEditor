@@ -8,6 +8,7 @@ from typing import Optional
 
 from backend.database import get_db
 from backend.services.ffmpeg_service import (
+    burn_captions_on_clip,
     concat_media,
     image_to_video,
     mix_audio_tracks,
@@ -147,7 +148,16 @@ async def build_export(project_id: int | str, output_path: str, export_settings:
                     from backend.services.ffmpeg_service import convert_format
                     convert_format(stored_path, tmp_path)
 
-            processed_clips.append(tmp_path)
+            # Burn captions into the clip if any have text
+            captions = [c for c in clip.get("captions", []) if (c.get("text") or "").strip()]
+            if captions:
+                cap_tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+                cap_tmp.close()
+                tmp_files.append(cap_tmp.name)
+                burn_captions_on_clip(tmp_path, cap_tmp.name, captions)
+                processed_clips.append(cap_tmp.name)
+            else:
+                processed_clips.append(tmp_path)
 
     finally:
         await db.close()

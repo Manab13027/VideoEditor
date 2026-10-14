@@ -6,6 +6,13 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
+class CaptionData(BaseModel):
+    start: float = 0.0
+    end: float = 3.0
+    text: str = ""
+    style: Optional[dict] = None
+
+
 class ClipData(BaseModel):
     id: str
     media_id: int
@@ -16,6 +23,7 @@ class ClipData(BaseModel):
     speed: float = 1.0
     duration: Optional[float] = None
     order: int = 0
+    captions: List[CaptionData] = Field(default_factory=list)
 
 
 class OverlayData(BaseModel):

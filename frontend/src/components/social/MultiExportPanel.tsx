@@ -39,7 +39,7 @@ export function MultiExportPanel() {
 
   const selected = metadata.platforms;
 
-  const pollJob = (platform: SocialPlatform, jobId: string) => {
+  const pollJob = (_platform: SocialPlatform, jobId: string) => {
     const id = setInterval(async () => {
       try {
         const res = await getExportStatus(jobId);

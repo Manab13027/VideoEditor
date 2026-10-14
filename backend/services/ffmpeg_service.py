@@ -622,3 +622,90 @@ def apply_transitions_concat(
         raise ValueError(f"Failed to apply transitions: {result.stderr}")
 
     return output_path
+
+
+def burn_captions_on_clip(input_path: str, output_path: str, captions: list) -> None:
+    """Burn caption overlays into a video clip using FFmpeg drawtext filters.
+
+    Each caption dict must have: text, start, end, and optionally style
+    (fontSize, color, bgOpacity, position, bold).
+    Captions with empty text are skipped.
+    """
+    import shutil
+
+    drawtext_filters: list[str] = []
+
+    for cap in captions:
+        text = (cap.get("text") or "").strip()
+        if not text:
+            continue
+
+        style      = cap.get("style") or {}
+        font_size  = int(style.get("fontSize", 20))
+        color      = style.get("color", "#ffffff")
+        bg_opacity = float(style.get("bgOpacity", 0.7))
+        position   = style.get("position", "bottom")
+        bold       = style.get("bold", False)
+        start      = float(cap.get("start", 0))
+        end        = float(cap.get("end", 9999))
+
+        # Ensure hex colour is in FFmpeg format
+        if color.startswith("#"):
+            color = "0x" + color[1:]
+
+        # Escape characters that are special in FFmpeg's drawtext
+        safe_text = (
+            text
+            .replace("\\", "\\\\")
+            .replace(":", "\\:")
+            .replace("'", "’")   # curly apostrophe avoids quoting issues
+            .replace("\n", " ")
+        )
+
+        # Vertical position expression
+        if position == "top":
+            y_expr = "20"
+        elif position == "middle":
+            y_expr = "(h-text_h)/2"
+        else:  # bottom
+            y_expr = "h-text_h-20"
+
+        parts = [
+            f"drawtext=text='{safe_text}'",
+            f"fontsize={font_size}",
+            f"fontcolor={color}",
+            "x=(w-text_w)/2",
+            f"y={y_expr}",
+            # Use gte/lte to avoid commas inside the enable expression
+            f"enable='gte(t,{start})*lte(t,{end})'",
+        ]
+
+        if bg_opacity > 0:
+            alpha = round(bg_opacity, 2)
+            parts += [
+                "box=1",
+                f"boxcolor=0x000000@{alpha}",
+                "boxborderw=8",
+            ]
+
+        if bold:
+            parts.append("fontstyle=bold")
+
+        drawtext_filters.append(":".join(parts))
+
+    if not drawtext_filters:
+        shutil.copy2(input_path, output_path)
+        return
+
+    vf = ",".join(drawtext_filters)
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", input_path,
+        "-vf", vf,
+        "-c:v", "libx264", "-crf", "23", "-preset", "fast",
+        "-c:a", "copy",
+        output_path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Caption burn failed:\n{result.stderr}")

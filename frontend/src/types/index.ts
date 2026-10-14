@@ -91,6 +91,7 @@ export interface Clip {
   effects?: Partial<ClipEffects> | null;
   transition_in?: TransitionType;
   transition_dur?: number;
+  captions?: Caption[];
 }
 
 export interface Overlay {
@@ -172,10 +173,25 @@ export interface ExportJob {
 
 export type TabMode = "edit" | "batch" | "export" | "ai" | "social" | "help";
 
+export type CaptionTransition = "none" | "fade" | "slide-up" | "slide-down" | "pop" | "bounce";
+export type CaptionPosition   = "bottom" | "middle" | "top";
+
+export interface CaptionStyle {
+  fontSize:   number;          // px, 12–72
+  fontFamily: string;
+  bold:       boolean;
+  italic:     boolean;
+  color:      string;          // hex
+  bgOpacity:  number;          // 0–1
+  transition: CaptionTransition;
+  position:   CaptionPosition;
+}
+
 export interface Caption {
   start: number;
   end:   number;
   text:  string;
+  style?: Partial<CaptionStyle>;
 }
 
 export interface AIJob {
@@ -212,20 +228,25 @@ export type AudioTrackType = "original" | "music" | "voiceover";
 
 export interface AudioTrack {
   id: string;
-  type: AudioTrackType;
-  mediaId: string;
+  type?: AudioTrackType;
+  mediaId?: string;
   name: string;
-  volume: number;       // 0.0 – 1.0
-  offset: number;       // seconds from composition start
+  volume: number;         // 0.0 – 1.0
+  offset?: number;        // seconds from composition start
+  time_start?: number;    // alias for offset used in AudioTrack component
+  trim_start?: number;    // seconds into the audio file to start playing
+  trim_end?: number | null; // seconds into the audio file to stop playing
   muted: boolean;
-  waveform: number[];   // normalized amplitude array (0–1), ~200 points
+  waveform: number[];     // normalized amplitude array (0–1), ~200 points
   duration?: number | null; // seconds to play; null = full duration
-  fade_in?: number;     // seconds, 0 = no fade
-  fade_out?: number;    // seconds, 0 = no fade
+  fade_in?: number;       // seconds, 0 = no fade
+  fade_out?: number;      // seconds, 0 = no fade
 }
 
 export interface BeatMarker {
-  timestamp: number;    // seconds
+  id?: string;
+  time?: number;        // seconds (alias for timestamp)
+  timestamp?: number;   // seconds
   strength: number;     // 0–1
 }
 

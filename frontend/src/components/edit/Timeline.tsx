@@ -13,8 +13,6 @@ function useGoToExport() {
 const ZOOM_LEVELS = [0.1, 0.25, 0.5, 1, 2] as const;
 type ZoomLevel = typeof ZOOM_LEVELS[number];
 
-const TRACK_HEIGHT = 56;
-
 const LABEL_W = 100;
 const VIDEO_H = 72;   // video/image clip block height
 const AUDIO_H = 28;   // audio strip height
@@ -217,7 +215,6 @@ function MultiTrack({ zoom }: { zoom: number }) {
   // Row heights
   const videoRowH = VIDEO_H + ROW_PAD * 2;
   const audioRowH = 72;  // enough for track name + 2 fade sliders
-  const totalH = videoRowH + (audioTracks.length > 0 ? audioTracks.length * audioRowH : audioRowH);
 
   // Renders a compact labelled slider for fade_in / fade_out
   const FadeSlider = ({

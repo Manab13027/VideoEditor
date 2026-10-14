@@ -38,16 +38,91 @@ export function PanelLayout({ left, center, right, bottom }: PanelLayoutProps) {
   }, [bottomH]);
 
   return (
-    <div className="panel-layout">
-      <div className="panel-main">
-        {left && <aside className="panel-left">{left}</aside>}
-        <main className="panel-center">{center}</main>
-        {right && <aside className="panel-right">{right}</aside>}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateRows: bottom ? `1fr ${bottomH}px` : "1fr",
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        flex: 1,          // still a flex-item in its parent (.app-body)
+        minHeight: 0,
+      }}
+    >
+      {/* Top area: left | center | right */}
+      <div
+        style={{
+          display: "flex",
+          overflow: "hidden",
+          minHeight: 0,
+          height: "100%",   /* resolve % heights for children */
+        }}
+      >
+        {left && (
+          <aside
+            style={{
+              width: 220,
+              flexShrink: 0,
+              background: "var(--bg-secondary)",
+              borderRight: "1px solid var(--border)",
+              overflowY: "auto",
+            }}
+          >
+            {left}
+          </aside>
+        )}
+        <main
+          style={{
+            flex: 1,
+            minWidth: 0,
+            background: "var(--bg-primary)",
+            overflow: "hidden",
+            position: "relative",
+            height: "100%",  /* lets PreviewPlayer use height:100% */
+          }}
+        >
+          {center}
+        </main>
+        {right && (
+          <aside
+            style={{
+              width: 220,
+              flexShrink: 0,
+              background: "var(--bg-secondary)",
+              borderLeft: "1px solid var(--border)",
+              overflowY: "auto",
+            }}
+          >
+            {right}
+          </aside>
+        )}
       </div>
+
+      {/* Bottom area: timeline */}
       {bottom && (
-        <div className="panel-bottom" style={{ height: bottomH }}>
-          {/* drag handle — sits at the top of the bottom panel */}
-          <div className="panel-resize-handle" onMouseDown={onMouseDown} title="Drag to resize timeline" />
+        <div
+          style={{
+            background: "var(--bg-secondary)",
+            borderTop: "1px solid var(--border)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Drag handle */}
+          <div
+            onMouseDown={onMouseDown}
+            title="Drag to resize timeline"
+            style={{
+              height: 5,
+              flexShrink: 0,
+              cursor: "ns-resize",
+              background: "transparent",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "var(--accent)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+          />
           <div style={{ flex: 1, overflow: "hidden" }}>{bottom}</div>
         </div>
       )}

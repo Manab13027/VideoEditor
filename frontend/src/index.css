@@ -47,6 +47,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 0; /* force flex child to not expand beyond its flex-allocated size */
 }
 
 /* Tab Bar */
@@ -174,6 +175,30 @@ body {
 .panel-resize-handle:hover {
   background: var(--accent);
   opacity: 0.5;
+}
+
+/* Caption animations */
+@keyframes caption-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes caption-slide-up {
+  from { opacity: 0; transform: var(--cap-tx, translateX(-50%)) translateY(18px); }
+  to   { opacity: 1; transform: var(--cap-tx, translateX(-50%)) translateY(0);    }
+}
+@keyframes caption-slide-down {
+  from { opacity: 0; transform: var(--cap-tx, translateX(-50%)) translateY(-18px); }
+  to   { opacity: 1; transform: var(--cap-tx, translateX(-50%)) translateY(0);     }
+}
+@keyframes caption-pop {
+  from { opacity: 0; transform: var(--cap-tx, translateX(-50%)) scale(0.75); }
+  to   { opacity: 1; transform: var(--cap-tx, translateX(-50%)) scale(1);    }
+}
+@keyframes caption-bounce {
+  0%   { opacity: 0; transform: var(--cap-tx, translateX(-50%)) scale(0.6); }
+  60%  { transform: var(--cap-tx, translateX(-50%)) scale(1.12); }
+  80%  { transform: var(--cap-tx, translateX(-50%)) scale(0.96); }
+  100% { opacity: 1; transform: var(--cap-tx, translateX(-50%)) scale(1);  }
 }
 
 /* Placeholder */

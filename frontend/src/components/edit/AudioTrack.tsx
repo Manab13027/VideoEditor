@@ -77,7 +77,7 @@ function AudioBlock({
         onUpdate({ time_start: Math.max(0, drag.startTimeStart + dt) });
       } else if (drag.type === "resize-right") {
         const newTrimEnd = Math.max(drag.startTrimStart + 0.5, drag.startTrimEnd + dt);
-        onUpdate({ trim_end: Math.min(newTrimEnd, track.duration) });
+        onUpdate({ trim_end: Math.min(newTrimEnd, track.duration ?? newTrimEnd) });
       } else {
         // resize-left: shift trim_start and time_start together
         const newTrimStart = Math.max(0, Math.min(drag.startTrimStart + dt, drag.startTrimEnd - 0.5));
@@ -228,7 +228,8 @@ function AudioBlock({
 }
 
 export function AudioTrack({ totalW, PX_PER_SEC }: { totalW: number; PX_PER_SEC: number }) {
-  const { tracks, addTrack, updateTrack, removeTrack, setBeatMarkers, beatMarkers, muteOriginalAudio, setMuteOriginalAudio } = useAudioStore();
+  const { tracks, addTrack, updateTrack, removeTrack, setBeatMarkers, beatMarkers,
+          muteOriginal: muteOriginalAudio, setMuteOriginal: setMuteOriginalAudio } = useAudioStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [loadingBeatsId, setLoadingBeatsId] = useState<string | null>(null);

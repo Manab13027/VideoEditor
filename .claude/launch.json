@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nifty-scalper",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/fighter/Documents/Projects_Folder/Nifty_Scalper && .venv/bin/uvicorn backend.main:app --port 8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "tgdl",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/fighter/Documents/Projects_Folder/TeleGram-Auto-File-Downloader && exec .venv/bin/python -m uvicorn --factory tgdl.server:create_app --host 127.0.0.1 --port 8777"
+      ],
+      "port": 8777
+    },
+    {
+      "name": "tgdl-preview",
+      "runtimeExecutable": "/Users/fighter/Documents/Projects_Folder/TeleGram-Auto-File-Downloader/.venv/bin/python",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-fighter-Documents-Projects-Folder-VideoEditor/d714bd4a-0d29-4e4e-8b6d-6d54a7264cb7/scratchpad/preview_server.py"
+      ],
+      "port": 8779
+    }
+  ]
+}
