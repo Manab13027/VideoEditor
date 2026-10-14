@@ -1,40 +1,22 @@
-# VideoEditor
+# ClipForge (VideoEditor)
 
-_TODO: one line on what this project does and who it's for._
+A **web-based video editor**. Upload a clip in the browser and trim, convert and
+process it server-side with FFmpeg. A FastAPI backend handles the heavy lifting
+while a React + TypeScript frontend provides a fast, drag-and-drop UI.
 
-**Stack:** Shell scripts
+## Features
+- Drag-and-drop uploads (`react-dropzone`) in a React/Vite UI
+- FFmpeg-powered processing (trim/convert/export) via a FastAPI backend
+- Client state with Zustand; REST API with live docs at `/docs`
+
+## Stack
+Python · FastAPI · FFmpeg · React · TypeScript · Vite
 
 ## Getting started
-
 ```bash
-./run.sh
+./run.sh            # starts backend (:8000) + frontend (:5173)
 ```
-
-## Project structure
-
-```
-Assets/
-CLAUDE.md
-Library/
-Logs/
-Packages/
-ProjectSettings/
-Temp/
-UserSettings/
-backend/
-data/
-docs/
-frontend/
-graphify-out/
-pytest.ini
-run.sh
-tests/
-```
+Requires **FFmpeg** installed (`brew install ffmpeg`).
 
 ## Notes
-
-_TODO: anything a new user should know — configuration, env vars, known limitations._
-
----
-
-_README scaffolded by readme_gen. Edit the TODOs to finish it._
+- Frontend: `frontend/` (Vite dev server on :5173). Backend: `backend/` (uvicorn on :8000).
